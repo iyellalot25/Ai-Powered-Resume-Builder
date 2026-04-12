@@ -8,7 +8,7 @@ function ProjectsSection({ projects }) {
           <div
             key={project.name}
             className="border border-gray-100 rounded-xl p-4 
-                          hover:border-indigo-200 transition-colors"
+                          hover:border-indigo-400 transition-colors"
           >
             <div className="flex justify-between items-start">
               <h3 className="font-semibold text-gray-800">{project.name}</h3>

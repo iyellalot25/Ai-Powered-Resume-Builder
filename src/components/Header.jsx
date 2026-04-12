@@ -1,6 +1,6 @@
 function Header({ name, title, email, location }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-8 text-center mb-6">
+    <div className="bg-cyan-200 rounded-2xl shadow-sm p-8 text-center mb-6">
       {/* Avatar circle — shows initials */}
       <div
         className="w-20 h-20 rounded-full bg-indigo-100 flex items-center 

@@ -1,6 +1,7 @@
 import Header from "./components/Header";
 import SkillsSection from "./components/SkillsSection";
 import ExperienceSection from "./components/ExperienceSection";
+import EducationSection from "./components/EducationSection";
 import ProjectsSection from "./components/ProjectsSection";
 
 const resumeData = {
@@ -30,6 +31,22 @@ const resumeData = {
         "Deployed ML models using FastAPI and Docker",
         "Collaborated with frontend team to integrate AI features",
       ],
+    },
+  ],
+
+  edu: [
+    {
+      degree: "Intermediate",
+      school: "Future Campus School",
+      year: "2024",
+      cgpa: "8.3",
+    },
+
+    {
+      degree: "B.Tech Computer Science & Engineering",
+      school: "VIT-AP University",
+      year: "2024-2028",
+      cgpa: "8.59",
     },
   ],
 
@@ -64,6 +81,7 @@ function App() {
 
         <SkillsSection skills={resumeData.skills} />
         <ExperienceSection jobs={resumeData.jobs} />
+        <EducationSection edu={resumeData.edu} />
         <ProjectsSection projects={resumeData.projects} />
       </div>
     </div>

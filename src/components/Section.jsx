@@ -3,7 +3,7 @@ function Section({ title, children }) {
     <div className="bg-gray-300 rounded-2xl shadow-sm p-6 mb-6">
       {/* Section title with a left accent bar */}
       <h2
-        className="text-xl font-bold text-gray-700 border-l-4 
+        className="text-xl font-bold text-gray-900 border-l-4 
                      border-indigo-500 pl-3 mb-4"
       >
         {title}
