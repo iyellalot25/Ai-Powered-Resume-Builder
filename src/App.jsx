@@ -1,10 +1,23 @@
 import { useState } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
 
 import Header from "./components/Header";
 import SkillsSection from "./components/SkillsSection";
 import ExperienceSection from "./components/ExperienceSection";
 import EducationSection from "./components/EducationSection";
 import ProjectsSection from "./components/ProjectsSection";
+import SortableSection from "./components/SortableSection";
 
 // Initial_Data
 const INITIAL_DATA = {
@@ -64,11 +77,120 @@ const INITIAL_DATA = {
       link: "#",
     },
   ],
+
+  sectionOrder: ["skills", "experience", "education", "projects"],
 };
 
 function App() {
   const [resume, setResume] = useState(INITIAL_DATA);
 
+  //  Drag end handler ─
+  // Called by dnd-kit when user drops a section in a new position
+  function handleDragEnd(event) {
+    const { active, over } = event;
+
+    // active = what was dragged, over = where it was dropped
+    // If dropped in same spot, do nothing
+    if (!over || active.id === over.id) return;
+
+    setResume((prev) => {
+      const oldIndex = prev.sectionOrder.indexOf(active.id);
+      const newIndex = prev.sectionOrder.indexOf(over.id);
+
+      // arrayMove is a dnd-kit utility — reorders an array cleanly
+      return {
+        ...prev,
+        sectionOrder: arrayMove(prev.sectionOrder, oldIndex, newIndex),
+      };
+    });
+  }
+
+  //  Sensors — how dnd-kit detects drag gestures
+  // PointerSensor works for both mouse and touch
+  // activationConstraint: user must drag 8px before it counts (prevents accidental drags)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+  );
+
+  //  Section map — id → component
+  // This is the clean way to render sections in dynamic order
+  const sectionMap = {
+    skills: (
+      <SkillsSection
+        skills={resume.skills}
+        onAdd={addSkill}
+        onRemove={removeSkill}
+      />
+    ),
+    experience: (
+      <ExperienceSection
+        jobs={resume.jobs}
+        onUpdateJob={updateJob}
+        onUpdateBullet={updateBullet}
+        onAddBullet={addBullet}
+        onRemoveBullet={removeBullet}
+        onAddJob={addJob}
+        onRemoveJob={removeJob}
+      />
+    ),
+    education: (
+      <EducationSection
+        edu={resume.edu}
+        onUpdateEdu={updateEdu}
+        onAddEdu={addEdu}
+        onRemoveEdu={removeEdu}
+      />
+    ),
+    projects: (
+      <ProjectsSection
+        projects={resume.projects}
+        onUpdateProject={updateProject}
+        onAddTech={addTech}
+        onRemoveTech={removeTech}
+        onAddProject={addProject}
+        onRemoveProject={removeProject}
+      />
+    ),
+  };
+
+  return (
+    <div className="min-h-screen bg-surface py-10 px-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Header is not draggable — always stays on top */}
+        <Header
+          name={resume.name}
+          title={resume.title}
+          email={resume.email}
+          location={resume.location}
+          onUpdate={updateField}
+        />
+
+        {/* DndContext wraps everything that can be dragged */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          {/* SortableContext knows the current order */}
+          <SortableContext
+            items={resume.sectionOrder}
+            strategy={verticalListSortingStrategy}
+          >
+            {/* Render sections in current order */}
+            {resume.sectionOrder.map((sectionId) => (
+              <SortableSection key={sectionId} id={sectionId}>
+                {sectionMap[sectionId]}
+              </SortableSection>
+            ))}
+          </SortableContext>
+        </DndContext>
+      </div>
+    </div>
+  );
+
+  //All updater fns
   // Helper: update any top-level field (name, title, email, location)
   function updateField(field, value) {
     setResume((prev) => ({ ...prev, [field]: value }));
@@ -247,49 +369,6 @@ function App() {
       projects: prev.projects.filter((_, i) => i !== projIndex),
     }));
   }
-
-  return (
-    <div className="min-h-screen bg-surface py-10 px-4">
-      <div className="max-w-3xl mx-auto">
-        <Header
-          name={resume.name}
-          title={resume.title}
-          email={resume.email}
-          location={resume.location}
-          onUpdate={updateField}
-        />
-
-        <SkillsSection
-          skills={resume.skills}
-          onAdd={addSkill}
-          onRemove={removeSkill}
-        />
-        <ExperienceSection
-          jobs={resume.jobs}
-          onUpdateJob={updateJob}
-          onUpdateBullet={updateBullet}
-          onAddBullet={addBullet}
-          onRemoveBullet={removeBullet}
-          onAddJob={addJob}
-          onRemoveJob={removeJob}
-        />
-        <EducationSection
-          edu={resume.edu}
-          onUpdateEdu={updateEdu}
-          onAddEdu={addEdu}
-          onRemoveEdu={removeEdu}
-        />
-        <ProjectsSection
-          projects={resume.projects}
-          onUpdateProject={updateProject}
-          onAddTech={addTech}
-          onRemoveTech={removeTech}
-          onAddProject={addProject}
-          onRemoveProject={removeProject}
-        />
-      </div>
-    </div>
-  );
 }
 
 export default App;
