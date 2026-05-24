@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Section from "./Section";
-import { input } from "../styles/ui";
+import { input, btn } from "../styles/ui";
+import { suggestBullets } from "../services/aiService";
 
 //  Reusable inline-editable text field ─
 // Same click-to-edit pattern from Header, extracted here for use in this file
@@ -56,7 +57,6 @@ function InlineEdit({
   );
 }
 
-//  Single job card ─
 // Updated JobCard signature
 function JobCard({
   job,
@@ -67,6 +67,47 @@ function JobCard({
   onRemoveBullet,
   onRemoveJob,
 }) {
+  // AI state — local to each job card, independent of other cards
+  const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState(null); // null = hidden
+
+  // ── AI: fetch suggestions ────────────────────────────────
+  async function handleSuggestBullets() {
+    if (!job.role || !job.company) {
+      alert("Please fill in the Job Role and Company name first.");
+      return;
+    }
+
+    setIsLoading(true);
+    setSuggestions(null);
+
+    try {
+      const raw = await suggestBullets(job.role, job.company);
+
+      const parsed = raw
+        .split("\n")
+        .map((line) => line.replace(/^[-•*\d+.]\s*/, "").trim())
+        .filter((line) => line.length > 10)
+        .slice(0, 3);
+
+      setSuggestions(parsed.length > 0 ? parsed : null);
+
+      if (parsed.length === 0) {
+        alert("AI returned an unexpected format. Try again.");
+      }
+    } catch (err) {
+      console.error("AI error:", err);
+      setSuggestions(["⚠️ Could not reach AI. Check your token or try again."]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // ── AI: apply suggestions → replace bullets ──────────────
+  function handleApplyBullets() {
+    onUpdateJob(jobIndex, "bullets", suggestions);
+    setSuggestions(null);
+  }
   return (
     <div
       className="border border-border rounded-xl p-4 mb-5 last:mb-0
@@ -136,15 +177,70 @@ function JobCard({
           </li>
         ))}
       </ul>
+      {/* Add bullet + AI button row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => onAddBullet(jobIndex)}
+          className="bg-secondary-light hover:bg-border text-text-secondary
+                     px-3 py-1 rounded-lg text-xs font-medium border border-border
+                     transition-colors duration-150"
+        >
+          + Add bullet
+        </button>
 
-      <button
-        onClick={() => onAddBullet(jobIndex)}
-        className="bg-secondary-light hover:bg-border text-text-secondary
-                   px-3 py-1 rounded-lg text-xs font-medium border border-border
-                   transition-colors duration-150"
-      >
-        + Add bullet
-      </button>
+        {/* ✨ AI Suggest Button */}
+        <button
+          onClick={handleSuggestBullets}
+          disabled={isLoading}
+          className={`${btn.primary} text-xs px-3 py-1 flex items-center gap-1.5
+                      disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
+          {isLoading ? (
+            <>
+              <span
+                className="w-3 h-3 border-2 border-white border-t-transparent
+                               rounded-full animate-spin"
+              />
+              Generating…
+            </>
+          ) : (
+            "✨ Suggest Bullets"
+          )}
+        </button>
+      </div>
+      {/* ── AI Suggestion Preview Box ── */}
+      {suggestions && (
+        <div
+          className="mt-4 p-4 bg-primary-light border border-primary
+                        rounded-xl text-sm"
+        >
+          <p className="text-primary font-semibold mb-2 text-xs uppercase tracking-wide">
+            ✨ AI Suggestions — preview only
+          </p>
+          <ul className="space-y-1.5 mb-3">
+            {suggestions.map((s, i) => (
+              <li key={i} className="flex gap-2 text-text-secondary">
+                <span className="text-primary shrink-0">▸</span>
+                {s}
+              </li>
+            ))}
+          </ul>
+          <div className="flex gap-2">
+            <button
+              onClick={handleApplyBullets}
+              className={`${btn.primary} text-xs px-3 py-1`}
+            >
+              ✅ Use These
+            </button>
+            <button
+              onClick={() => setSuggestions(null)}
+              className={`${btn.secondary} text-xs px-3 py-1`}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
