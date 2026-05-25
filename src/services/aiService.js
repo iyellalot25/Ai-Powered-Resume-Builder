@@ -60,3 +60,20 @@ Target role: ${jobRole}`;
 
   return callHuggingFace(system, user);
 }
+// Feature: Project Bullet Suggestions
+// Takes project name + description, returns 3 impact bullets
+export async function suggestProjectBullets(projectName, description) {
+  const system = `You are a professional resume writer.
+Write exactly 3 concise, impactful resume bullet points for a project.
+Each bullet starts with a strong action verb.
+Focus on technical implementation, impact, and results.
+Return ONLY the 3 bullets, nothing else:
+- [bullet 1]
+- [bullet 2]
+- [bullet 3]`;
+
+  const user = `Project: ${projectName}
+Description: ${description}`;
+
+  return callHuggingFace(system, user);
+}
