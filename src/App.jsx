@@ -68,6 +68,7 @@ const INITIAL_DATA = {
       description: "Interactive resume builder with AI-powered suggestions.",
       tech: ["React", "Tailwind", "Hugging Face API"],
       link: "#",
+      bullets: [],
     },
     {
       id: "proj-2",
@@ -75,6 +76,7 @@ const INITIAL_DATA = {
       description: "NLP model classifying product reviews with 94% accuracy.",
       tech: ["Python", "BERT", "FastAPI"],
       link: "#",
+      bullets: [],
     },
   ],
 
@@ -151,6 +153,9 @@ function App() {
         onRemoveTech={removeTech}
         onAddProject={addProject}
         onRemoveProject={removeProject}
+        onUpdateProjectBullet={updateProjectBullet}
+        onAddProjectBullet={addProjectBullet}
+        onRemoveProjectBullet={removeProjectBullet}
       />
     ),
   };
@@ -367,6 +372,41 @@ function App() {
     setResume((prev) => ({
       ...prev,
       projects: prev.projects.filter((_, i) => i !== projIndex),
+    }));
+  }
+
+  function updateProjectBullet(projIndex, bulletIndex, value) {
+    setResume((prev) => ({
+      ...prev,
+      projects: prev.projects.map((p, i) => {
+        if (i !== projIndex) return p;
+        const newBullets = p.bullets.map((b, bi) =>
+          bi === bulletIndex ? value : b,
+        );
+        return { ...p, bullets: newBullets };
+      }),
+    }));
+  }
+
+  function addProjectBullet(projIndex) {
+    setResume((prev) => ({
+      ...prev,
+      projects: prev.projects.map((p, i) =>
+        i === projIndex ? { ...p, bullets: [...p.bullets, ""] } : p,
+      ),
+    }));
+  }
+
+  function removeProjectBullet(projIndex, bulletIndex) {
+    setResume((prev) => ({
+      ...prev,
+      projects: prev.projects.map((p, i) => {
+        if (i !== projIndex) return p;
+        return {
+          ...p,
+          bullets: p.bullets.filter((_, bi) => bi !== bulletIndex),
+        };
+      }),
     }));
   }
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Section from "./Section";
 import { btn, input, tag } from "../styles/ui";
+import { suggestProjectBullets } from "../services/aiService";
 
 //  Inline edit
 function InlineEdit({
@@ -66,6 +67,62 @@ function InlineEdit({
   );
 }
 
+// BulletEdit
+function BulletEdit({ value, onSave }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  function handleSave() {
+    const trimmed = draft.trim();
+    if (trimmed) onSave(trimmed);
+    else setDraft(value);
+    setIsEditing(false);
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSave();
+    }
+    if (e.key === "Escape") {
+      setDraft(value);
+      setIsEditing(false);
+    }
+  }
+
+  if (isEditing) {
+    return (
+      <textarea
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={handleSave}
+        onKeyDown={handleKeyDown}
+        rows={2}
+        className={`${input.base} flex-1 resize-none`}
+      />
+    );
+  }
+
+  return (
+    <span
+      onClick={() => {
+        setDraft(value);
+        setIsEditing(true);
+      }}
+      title="Click to edit"
+      className="flex-1 text-sm text-text-secondary cursor-pointer
+                 hover:text-primary transition-colors duration-150"
+    >
+      {value || (
+        <span className="text-text-muted italic">
+          Click to add bullet text…
+        </span>
+      )}
+    </span>
+  );
+}
+
 //  Single project card
 function ProjectCard({
   project,
@@ -74,8 +131,54 @@ function ProjectCard({
   onAddTech,
   onRemoveTech,
   onRemoveProject,
+  onUpdateProjectBullet,
+  onAddProjectBullet,
+  onRemoveProjectBullet,
 }) {
   const [techDraft, setTechDraft] = useState("");
+
+  // AI state — local to each card
+  const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState(null);
+
+  //AI: fetch project bullet suggestion
+  async function handleSuggestBullets() {
+    if (!project.name) {
+      alert("Please fill in the Project Name first.");
+      return;
+    }
+
+    setIsLoading(true);
+    setSuggestions(null);
+
+    try {
+      const raw = await suggestProjectBullets(
+        project.name,
+        project.description || "a software project",
+      );
+
+      const parsed = raw
+        .split("\n")
+        .map((line) => line.replace(/^[-•*\d+.]\s*/, "").trim())
+        .filter((line) => line.length > 10)
+        .slice(0, 3);
+
+      setSuggestions(parsed.length > 0 ? parsed : null);
+      if (parsed.length === 0)
+        alert("AI returned an unexpected format. Try again.");
+    } catch (err) {
+      console.error("AI error:", err);
+      setSuggestions(["⚠️ Could not reach AI. Check your token or try again."]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // ── AI: apply suggestions
+  function handleApplyBullets() {
+    onUpdateProject(projIndex, "bullets", suggestions);
+    setSuggestions(null);
+  }
 
   function handleAddTech() {
     onAddTech(projIndex, techDraft);
@@ -146,8 +249,34 @@ function ProjectCard({
         ))}
       </div>
 
-      {/* Add tech tag row */}
-      <div className="flex gap-2">
+      {/*Bullets */}
+      {project.bullets.length > 0 && (
+        <ul className="space-y-2 mb-3">
+          {project.bullets.map((bullet, bulletIndex) => (
+            <li key={bulletIndex} className="flex items-start gap-2 group">
+              <span className="text-primary mt-2 text-xs shrink-0">▸</span>
+              <BulletEdit
+                value={bullet}
+                onSave={(val) =>
+                  onUpdateProjectBullet(projIndex, bulletIndex, val)
+                }
+              />
+              <button
+                onClick={() => onRemoveProjectBullet(projIndex, bulletIndex)}
+                className="opacity-0 group-hover:opacity-100 text-text-muted
+                           hover:text-danger transition-all duration-150
+                           mt-1.5 text-xs shrink-0"
+                title="Remove bullet"
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Add tech tag row + bullet + AI buttons */}
+      <div className="flex gap-2 flex-wrap mb-3">
         <input
           type="text"
           value={techDraft}
@@ -164,6 +293,68 @@ function ProjectCard({
           Add
         </button>
       </div>
+      {/* Bullet controls row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => onAddProjectBullet(projIndex)}
+          className="bg-secondary-light hover:bg-border text-text-secondary
+                     px-3 py-1 rounded-lg text-xs font-medium border border-border
+                     transition-colors duration-150"
+        >
+          + Add Bullet
+        </button>
+
+        {/* ✨ AI Suggest Bullets */}
+        <button
+          onClick={handleSuggestBullets}
+          disabled={isLoading}
+          className={`${btn.primary} text-xs px-3 py-1 flex items-center gap-1.5
+                      disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
+          {isLoading ? (
+            <>
+              <span
+                className="w-3 h-3 border-2 border-white border-t-transparent
+                               rounded-full animate-spin"
+              />
+              Generating…
+            </>
+          ) : (
+            "✨ Suggest Bullets"
+          )}
+        </button>
+      </div>
+
+      {/* ── AI Suggestion Preview Box ── */}
+      {suggestions && (
+        <div className="mt-4 p-4 bg-primary-light border border-primary rounded-xl text-sm">
+          <p className="text-primary font-semibold mb-2 text-xs uppercase tracking-wide">
+            ✨ AI Suggestions — preview only
+          </p>
+          <ul className="space-y-1.5 mb-3">
+            {suggestions.map((s, i) => (
+              <li key={i} className="flex gap-2 text-text-secondary">
+                <span className="text-primary shrink-0">▸</span>
+                {s}
+              </li>
+            ))}
+          </ul>
+          <div className="flex gap-2">
+            <button
+              onClick={handleApplyBullets}
+              className={`${btn.primary} text-xs px-3 py-1`}
+            >
+              ✅ Use These
+            </button>
+            <button
+              onClick={() => setSuggestions(null)}
+              className={`${btn.secondary} text-xs px-3 py-1`}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -176,6 +367,9 @@ function ProjectsSection({
   onRemoveTech,
   onAddProject,
   onRemoveProject,
+  onUpdateProjectBullet,
+  onAddProjectBullet,
+  onRemoveProjectBullet,
 }) {
   return (
     <Section title="Projects">
@@ -189,6 +383,9 @@ function ProjectsSection({
             onAddTech={onAddTech}
             onRemoveTech={onRemoveTech}
             onRemoveProject={onRemoveProject}
+            onUpdateProjectBullet={onUpdateProjectBullet}
+            onAddProjectBullet={onAddProjectBullet}
+            onRemoveProjectBullet={onRemoveProjectBullet}
           />
         ))}
       </div>
