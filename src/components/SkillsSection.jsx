@@ -40,13 +40,13 @@ function SkillsSection({ skills, onAdd, onRemove }) {
     }
   }
 
-  // ── Add one suggested skill (called on chip click)
+  //Add one suggested skill (called on chip click)
   function handleAddSuggestion(skill) {
     onAdd(skill);
     setSuggestions((prev) => prev.filter((s) => s !== skill));
   }
 
-  // ── Add ALL remaining suggestions at once
+  //Add ALL remaining suggestions at once
   function handleAddAll() {
     suggestions.forEach((skill) => onAdd(skill));
     setSuggestions([]);
@@ -64,12 +64,12 @@ function SkillsSection({ skills, onAdd, onRemove }) {
 
   return (
     <Section title="Skills">
-      {/* ── Skill tag list */}
+      {/*Skill tag list */}
       <div className="flex flex-wrap gap-2 mb-4">
         {skills.map((skill) => (
           <span key={skill} className={tag.skill}>
             {skill}
-            {/* × remove button — sits inside the tag */}
+            {/* × remove button sits inside the tag */}
             <button
               onClick={() => onRemove(skill)}
               className={btn.pill}
@@ -100,7 +100,7 @@ function SkillsSection({ skills, onAdd, onRemove }) {
           Add
         </button>
 
-        {/* ✨ AI Suggest Button — sits next to Add */}
+        {/*  AI Suggest Button sits next to Add */}
         <button
           onClick={handleSuggestSkills}
           disabled={isLoading}
