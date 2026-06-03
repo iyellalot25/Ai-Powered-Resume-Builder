@@ -37,7 +37,10 @@ function SortableSection({ id, children }) {
                         transition-opacity duration-150"
         >
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="w-1 h-1 rounded-full bg-secondary" />
+            <div
+              key={i}
+              className="w-1 h-1 rounded-full bg-secondary dark:bg-gray-400"
+            />
           ))}
         </div>
       </div>

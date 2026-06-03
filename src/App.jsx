@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -86,6 +86,29 @@ const INITIAL_DATA = {
 function App() {
   const [resume, setResume] = useState(INITIAL_DATA);
 
+  // Dark mode state
+  // Read saved preference from localStorage on first load
+  const [isDark, setIsDark] = useState(
+    () => localStorage.getItem("theme") === "dark",
+  );
+
+  // Whenever isDark changes=> add/remove the "dark" class on <html>
+  // and save the preference so it persists across page refreshes
+  useEffect(() => {
+    const root = document.documentElement; // this is the <html> element
+    if (isDark) {
+      root.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      root.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDark]);
+
+  function toggleDark() {
+    setIsDark((prev) => !prev);
+  }
+
   //  Drag end handler ─
   // Called by dnd-kit when user drops a section in a new position
   function handleDragEnd(event) {
@@ -161,8 +184,33 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-surface py-10 px-4">
+    <div
+      className="min-h-screen bg-surface dark:bg-gray-900 py-10 px-4
+                    transition-colors duration-300"
+    >
       <div className="max-w-3xl mx-auto">
+        {/* Dark mode toggle button*/}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={toggleDark}
+            title="Toggle dark mode"
+            className={`relative w-16 h-8 rounded-full transition-colors duration-300
+              focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+              dark:focus:ring-offset-gray-900
+              ${isDark ? "bg-indigo-500" : "bg-gray-300"}`}
+          >
+            {/* The sliding circle with the emoji inside */}
+            <span
+              className={`absolute top-1 left-1 w-6 h-6 rounded-full
+              flex items-center justify-center text-sm
+              shadow-md transition-transform duration-300
+              ${isDark ? "translate-x-8 bg-indigo-900" : "translate-x-0 bg-white"}`}
+            >
+              {isDark ? "🌙" : "☀️"}
+            </span>
+          </button>
+        </div>
+
         {/* Header is not draggable — always stays on top */}
         <Header
           name={resume.name}

@@ -55,19 +55,19 @@ function EditableField({ value, onSave, className = "", inputClass = "" }) {
 
 function Header({ name, title, email, location, onUpdate }) {
   return (
-    <div className="bg-card rounded-2xl shadow-card p-8 mb-6 text-center">
+    <div className="bg-card dark:bg-gray-800 rounded-2xl shadow-card p-8 mb-6 text-center">
       {/* Avatar — shows first letter of name */}
       <div
-        className="w-20 h-20 rounded-full bg-primary-light flex items-center
-                      justify-center mx-auto mb-4"
+        className="w-20 h-20 rounded-full bg-primary-light dark:bg-indigo-900 flex items-center
+                   justify-center mx-auto mb-4"
       >
-        <span className="text-2xl font-bold text-primary">
+        <span className="text-2xl font-bold text-primary dark:text-indigo-300">
           {name.charAt(0)}
         </span>
       </div>
 
       {/* Name — H1, editable */}
-      <h1 className="text-3xl font-bold text-text-primary">
+      <h1 className="text-3xl font-bold text-text-primary dark:text-gray-100">
         <EditableField
           value={name}
           onSave={(val) => onUpdate("name", val)}
@@ -85,7 +85,7 @@ function Header({ name, title, email, location, onUpdate }) {
       </p>
 
       {/* Info row — email + location, both editable */}
-      <div className="flex justify-center gap-6 mt-4 text-sm text-text-secondary">
+      <div className="flex justify-center gap-6 mt-4 text-sm text-text-secondary dark:text-gray-400">
         <span className="flex items-center gap-2">
           📧
           <EditableField
@@ -105,7 +105,9 @@ function Header({ name, title, email, location, onUpdate }) {
       </div>
 
       {/* Hint text — teaches user the click-to-edit interaction */}
-      <p className="text-xs text-text-muted mt-3">✏️ Click any field to edit</p>
+      <p className="text-xs text-text-muted dark:text-gray-500 mt-3">
+        ✏️ Click any field to edit
+      </p>
     </div>
   );
 }
