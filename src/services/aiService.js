@@ -1,3 +1,15 @@
+// Add this import at the very top of aiService.js
+import { SKILL_SUGGESTIONS, BULLET_SUGGESTIONS } from "./fallbackData";
+
+//Fallback helper matches role to a key
+// Returns the first key that appears in the role string
+// Falls back to "default" if nothing matches
+function matchRole(role) {
+  const lower = role.toLowerCase();
+  const keys = Object.keys(SKILL_SUGGESTIONS);
+  return keys.find((key) => lower.includes(key)) ?? "default";
+}
+
 const HF_TOKEN = import.meta.env.VITE_HF_TOKEN;
 const MODEL = "Qwen/Qwen2.5-7B-Instruct";
 const API_URL = "https://router.huggingface.co/v1/chat/completions";
@@ -44,7 +56,14 @@ Use this format — return ONLY the 3 bullets, nothing else:
 
   const user = `Job role: ${role} at ${company}`;
 
-  return callHuggingFace(system, user);
+  try {
+    return await callHuggingFace(system, user);
+  } catch (err) {
+    console.warn("AI unavailable, using fallback:", err.message);
+    // Return fallback bullets joined as a string (same format as API)
+    const key = matchRole(role);
+    return BULLET_SUGGESTIONS[key].join("\n");
+  }
 }
 
 //Feature: Keyword Enhancement
@@ -58,7 +77,14 @@ Example: Docker, Kubernetes, FastAPI, Redis, PostgreSQL`;
   const user = `Current skills: ${currentSkills.join(", ")}
 Target role: ${jobRole}`;
 
-  return callHuggingFace(system, user);
+  try {
+    return await callHuggingFace(system, user);
+  } catch (err) {
+    console.warn("AI unavailable, using fallback:", err.message);
+    const key = matchRole(jobRole);
+    // Return as comma-separated string (same format as API)
+    return SKILL_SUGGESTIONS[key].join(", ");
+  }
 }
 // Feature: Project Bullet Suggestions
 // Takes project name + description, returns 3 impact bullets
@@ -75,5 +101,12 @@ Return ONLY the 3 bullets, nothing else:
   const user = `Project: ${projectName}
 Description: ${description}`;
 
-  return callHuggingFace(system, user);
+  try {
+    return await callHuggingFace(system, user);
+  } catch (err) {
+    console.warn("AI unavailable, using fallback:", err.message);
+    // Use project name + description to guess role context
+    const key = matchRole(`${projectName} ${description}`);
+    return BULLET_SUGGESTIONS[key].join("\n");
+  }
 }
