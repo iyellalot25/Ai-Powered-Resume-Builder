@@ -18,6 +18,7 @@ import ExperienceSection from "./components/ExperienceSection";
 import EducationSection from "./components/EducationSection";
 import ProjectsSection from "./components/ProjectsSection";
 import SortableSection from "./components/SortableSection";
+import GitHubSection from "./components/GitHubSection";
 
 import { useReactToPrint } from "react-to-print";
 
@@ -82,7 +83,7 @@ const INITIAL_DATA = {
     },
   ],
 
-  sectionOrder: ["skills", "experience", "education", "projects"],
+  sectionOrder: ["skills", "experience", "education", "projects", "github"],
 };
 
 function App() {
@@ -192,6 +193,7 @@ function App() {
         onRemoveProjectBullet={removeProjectBullet}
       />
     ),
+    github: <GitHubSection />,
   };
 
   return (
