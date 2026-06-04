@@ -28,7 +28,7 @@ function SortableSection({ id, children }) {
         className="flex items-center justify-center gap-1
                    w-full py-1.5 mb-[-1.5rem]
                    cursor-grab active:cursor-grabbing
-                   group"
+                   group print:hidden"
         title="Drag to reorder"
       >
         {/* 6 dots — classic drag handle appearance */}

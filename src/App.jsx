@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -18,6 +18,8 @@ import ExperienceSection from "./components/ExperienceSection";
 import EducationSection from "./components/EducationSection";
 import ProjectsSection from "./components/ProjectsSection";
 import SortableSection from "./components/SortableSection";
+
+import { useReactToPrint } from "react-to-print";
 
 // Initial_Data
 const INITIAL_DATA = {
@@ -109,6 +111,15 @@ function App() {
     setIsDark((prev) => !prev);
   }
 
+  // Ref pointing to the printable resume area
+  const printRef = useRef(null); //initializing to null
+
+  // react-to-print hook => prints only the div attached to printRef
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `${resume.name}_Resume`, // sets the PDF filename
+  });
+
   //  Drag end handler ─
   // Called by dnd-kit when user drops a section in a new position
   function handleDragEnd(event) {
@@ -139,7 +150,7 @@ function App() {
     }),
   );
 
-  //  Section map — id → component
+  //  Section map — id => component
   // This is the clean way to render sections in dynamic order
   const sectionMap = {
     skills: (
@@ -189,8 +200,21 @@ function App() {
                     transition-colors duration-300"
     >
       <div className="max-w-3xl mx-auto">
-        {/* Dark mode toggle button*/}
-        <div className="flex justify-end mb-4">
+        {/* Toolbar — hidden when printing */}
+        <div className="flex justify-end items-center gap-3 mb-4 print:hidden">
+          {/* Download PDF button */}
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+               bg-primary hover:bg-primary-dark text-white
+               dark:bg-indigo-800 dark:hover:bg-indigo-700
+               shadow-card transition-all duration-150
+               focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+               dark:focus:ring-offset-gray-900"
+          >
+            ⬇️ Download PDF
+          </button>
+          {/* Dark mode toggle button*/}
           <button
             onClick={toggleDark}
             title="Toggle dark mode"
@@ -211,34 +235,38 @@ function App() {
           </button>
         </div>
 
-        {/* Header is not draggable — always stays on top */}
-        <Header
-          name={resume.name}
-          title={resume.title}
-          email={resume.email}
-          location={resume.location}
-          onUpdate={updateField}
-        />
+        {/* ── Printable resume area ── */}
+        {/* ref tells react-to-print "print everything inside here" */}
+        <div ref={printRef}>
+          {/* Header is not draggable — always stays on top */}
+          <Header
+            name={resume.name}
+            title={resume.title}
+            email={resume.email}
+            location={resume.location}
+            onUpdate={updateField}
+          />
 
-        {/* DndContext wraps everything that can be dragged */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          {/* SortableContext knows the current order */}
-          <SortableContext
-            items={resume.sectionOrder}
-            strategy={verticalListSortingStrategy}
+          {/* DndContext wraps everything that can be dragged */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            {/* Render sections in current order */}
-            {resume.sectionOrder.map((sectionId) => (
-              <SortableSection key={sectionId} id={sectionId}>
-                {sectionMap[sectionId]}
-              </SortableSection>
-            ))}
-          </SortableContext>
-        </DndContext>
+            {/* SortableContext knows the current order */}
+            <SortableContext
+              items={resume.sectionOrder}
+              strategy={verticalListSortingStrategy}
+            >
+              {/* Render sections in current order */}
+              {resume.sectionOrder.map((sectionId) => (
+                <SortableSection key={sectionId} id={sectionId}>
+                  {sectionMap[sectionId]}
+                </SortableSection>
+              ))}
+            </SortableContext>
+          </DndContext>
+        </div>
       </div>
     </div>
   );

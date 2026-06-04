@@ -2,3 +2,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@media print {
+  /* Remove page margins so resume fills the page cleanly */
+  @page {
+    margin: 0.5in;
+  }
+
+  /* Hide the surface background — white looks better on paper */
+  body {
+    background: white !important;
+  }
+
+  /* Remove shadows on cards — they look muddy when printed */
+  .shadow-card {
+    box-shadow: none !important;
+  }
+
+  /* Force light mode colors when printing */
+  /* (dark backgrounds waste ink and look bad as PDF) */
+  .dark .bg-gray-900 {
+    background: white !important;
+  }
+  .dark .bg-gray-800 {
+    background: white !important;
+  }
+  .dark .text-gray-100 {
+    color: #1f2937 !important;
+  }
+  .dark .text-gray-300 {
+    color: #6b7280 !important;
+  }
+}
