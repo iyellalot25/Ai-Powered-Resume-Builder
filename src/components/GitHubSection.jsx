@@ -3,6 +3,155 @@ import { useState } from "react";
 import Section from "./Section";
 import { btn, input } from "../styles/ui";
 
+// Language colors maps common languages to a color
+// GitHub's official language colors
+const LANG_COLORS = {
+  JavaScript: "#f1e05a",
+  TypeScript: "#3178c6",
+  Python: "#3572A5",
+  Java: "#b07219",
+  "C++": "#f34b7d",
+  C: "#555555",
+  Rust: "#dea584",
+  Go: "#00ADD8",
+  HTML: "#e34c26",
+  CSS: "#563d7c",
+  Ruby: "#701516",
+  Swift: "#F05138",
+  Kotlin: "#A97BFF",
+  Dart: "#00B4AB",
+  Shell: "#89e051",
+  Vue: "#41b883",
+  Jupyter: "#DA5B0B",
+};
+
+function getLangColor(lang) {
+  return LANG_COLORS[lang] || "#6366F1"; // fallback to primary
+}
+
+//Profile Stats Bar
+function ProfileStats({ profile, totalStars }) {
+  // Calculate how long ago the account was created
+  const joinYear = new Date(profile.created_at).getFullYear();
+
+  return (
+    <div
+      className="flex items-center gap-4 mb-6 p-4
+                    bg-secondary-light dark:bg-gray-700/50
+                    rounded-xl border border-border dark:border-gray-700"
+    >
+      {/* Avatar */}
+      <img
+        src={profile.avatar_url}
+        alt={profile.login}
+        className="w-14 h-14 rounded-full border-2 border-primary shrink-0"
+      />
+
+      {/* Bio + username */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="text-sm font-semibold text-text-primary dark:text-gray-100">
+            {profile.name || profile.login}
+          </span>
+          <span className="text-xs text-text-muted dark:text-gray-500">
+            @{profile.login}
+          </span>
+        </div>
+        {profile.bio && (
+          <p className="text-xs text-text-secondary dark:text-gray-400 truncate">
+            {profile.bio}
+          </p>
+        )}
+        {/* Stats row */}
+        <div className="flex flex-wrap gap-3 mt-2">
+          <Stat icon="👥" value={profile.followers} label="followers" />
+          <Stat icon="📦" value={profile.public_repos} label="repos" />
+          <Stat icon="⭐" value={totalStars} label="stars" />
+          <Stat icon="📅" value={`Since ${joinYear}`} label="" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Tiny stat pill used inside ProfileStats
+function Stat({ icon, value, label }) {
+  return (
+    <span className="flex items-center gap-1 text-xs text-text-secondary dark:text-gray-400">
+      {icon}
+      <span className="font-semibold text-text-primary dark:text-gray-200">
+        {value}
+      </span>
+      {label && <span>{label}</span>}
+    </span>
+  );
+}
+
+//Language Breakdown Bar
+function LanguageBar({ repos }) {
+  // Count how many repos use each language
+  const counts = {};
+  repos.forEach((repo) => {
+    if (!repo.language) return;
+    counts[repo.language] = (counts[repo.language] || 0) + 1;
+  });
+
+  // Sort by count descending, take top 6
+  const sorted = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  const total = sorted.reduce((sum, [, count]) => sum + count, 0);
+
+  if (sorted.length === 0) return null;
+
+  return (
+    <div className="mb-5">
+      <p
+        className="text-xs font-semibold text-text-secondary dark:text-gray-400
+                    uppercase tracking-wide mb-2"
+      >
+        Most Used Languages
+      </p>
+
+      {/* Segmented bar */}
+      <div className="flex rounded-full overflow-hidden h-2.5 mb-3 gap-0.5">
+        {sorted.map(([lang, count]) => (
+          <div
+            key={lang}
+            title={`${lang}: ${Math.round((count / total) * 100)}%`}
+            style={{
+              width: `${(count / total) * 100}%`,
+              backgroundColor: getLangColor(lang),
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-3">
+        {sorted.map(([lang, count]) => (
+          <span
+            key={lang}
+            className="flex items-center gap-1.5 text-xs
+                                      text-text-secondary dark:text-gray-400"
+          >
+            {/* Color dot */}
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: getLangColor(lang) }}
+            />
+            {lang}
+            <span className="text-text-muted dark:text-gray-500">
+              {Math.round((count / total) * 100)}%
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Single repo card
 function RepoCard({ repo }) {
   return (
@@ -33,66 +182,100 @@ function RepoCard({ repo }) {
       <div className="flex items-center gap-3">
         {repo.language && (
           <span
-            className="bg-primary-light dark:bg-indigo-900 text-primary
-                           dark:text-indigo-300 px-2 py-0.5 rounded-full text-xs"
+            className="flex items-center gap-1.5 text-xs
+                           text-text-secondary dark:text-gray-400"
           >
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: getLangColor(repo.language) }}
+            />
             {repo.language}
           </span>
         )}
         <span className="text-xs text-text-muted dark:text-gray-500">
           🍴 {repo.forks_count} forks
         </span>
+        {repo.topics?.length > 0 && (
+          <span className="text-xs text-text-muted dark:text-gray-500 truncate">
+            🏷️ {repo.topics.slice(0, 2).join(", ")}
+          </span>
+        )}
       </div>
     </a>
   );
 }
 
-// ── GitHubSection ─────────────────────────────────────────
+//GitHubSection
 function GitHubSection() {
   const [username, setUsername] = useState("");
   const [draft, setDraft] = useState("");
   const [repos, setRepos] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [totalStars, setTotalStars] = useState(0);
 
   // "idle" | "loading" | "success" | "error"
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
   // Fetch repos from GitHub API
-  async function fetchRepos() {
+  async function fetchData() {
     const trimmed = draft.trim();
     if (!trimmed) return;
 
     setStatus("loading");
     setRepos([]);
+    setProfile(null);
     setErrorMsg("");
 
     try {
-      const res = await fetch(
+      // Fire both requests at the same time using Promise.all
+      // Instead of waiting for one then the other, both run in parallel
+      // This is faster — total wait = slowest request, not sum of both
+      const [profileRes, reposRes] = await Promise.all([
+        fetch(`https://api.github.com/users/${trimmed}`),
         // sort=stars => top repos first, per_page=6 => max 6 cards
-        `https://api.github.com/users/${trimmed}/repos?sort=stars&per_page=6`,
-      );
+        fetch(
+          `https://api.github.com/search/repositories?q=user:${trimmed}&sort=stars&per_page=6`,
+        ),
+      ]);
 
       // GitHub returns 404 if username doesn't exist
-      if (res.status === 404) {
+      if (profileRes.status === 404) {
         throw new Error(`User "${trimmed}" not found on GitHub.`);
       }
 
       // GitHub rate limits unauthenticated requests to 60/hour
-      if (res.status === 403) {
+      if (profileRes.status === 403 || reposRes.status === 403) {
         throw new Error("GitHub rate limit reached. Try again in an hour.");
       }
 
-      if (!res.ok) {
-        throw new Error(`GitHub API error: ${res.status}`);
+      if (!profileRes.ok) {
+        throw new Error(`GitHub API error: ${profileRes.status}`);
+      }
+      if (!reposRes.ok) {
+        throw new Error(`GitHub Search API error: ${reposRes.status}`);
       }
 
-      const data = await res.json();
+      const [profileData, searchResultData] = await Promise.all([
+        profileRes.json(),
+        reposRes.json(),
+      ]);
 
-      if (data.length === 0) {
+      const reposData = searchResultData.items || [];
+
+      if (reposData.length === 0) {
         throw new Error("This user has no public repositories.");
       }
 
-      setRepos(data);
+      // Calculate total stars across all fetched repos
+      const stars = reposData.reduce(
+        (sum, repo) => sum + repo.stargazers_count,
+        0,
+      );
+
+      setProfile(profileData);
+      setRepos(reposData);
+      setTotalStars(stars);
       setUsername(trimmed); // save the confirmed username
       setStatus("success");
     } catch (err) {
@@ -102,15 +285,17 @@ function GitHubSection() {
   }
 
   function handleKeyDown(e) {
-    if (e.key === "Enter") fetchRepos();
+    if (e.key === "Enter") fetchData();
   }
 
   // Allow user to search a different username
   function handleReset() {
     setStatus("idle");
     setRepos([]);
+    setProfile(null);
     setDraft("");
     setUsername("");
+    setTotalStars(0);
   }
 
   return (
@@ -127,7 +312,7 @@ function GitHubSection() {
             className={input.base}
           />
           <button
-            onClick={fetchRepos}
+            onClick={fetchData}
             disabled={!draft.trim() || status === "loading"}
             className={`${btn.primary} shrink-0
                         disabled:opacity-50 disabled:cursor-not-allowed
@@ -138,22 +323,22 @@ function GitHubSection() {
                 {/* Spinner — same pattern as AI buttons */}
                 <span
                   className="w-3 h-3 border-2 border-white
-                                 border-t-transparent rounded-full animate-spin"
+                             border-t-transparent rounded-full animate-spin"
                 />
                 Loading…
               </>
             ) : (
-              "Fetch Repos"
+              "Fetch Profile"
             )}
           </button>
         </div>
       )}
 
-      {/* ── Error message ── */}
+      {/*Error message*/}
       {status === "error" && (
         <div
           className="mb-4 p-3 bg-red-50 dark:bg-red-950 border border-danger
-                        rounded-xl text-sm text-danger flex justify-between items-center"
+                     rounded-xl text-sm text-danger flex justify-between items-center"
         >
           <span>⚠️ {errorMsg}</span>
           <button
@@ -165,35 +350,45 @@ function GitHubSection() {
         </div>
       )}
 
-      {/* ── Success header — shows username + change button ── */}
-      {status === "success" && (
-        <div className="flex justify-between items-center mb-4">
-          <p className="text-sm text-text-secondary dark:text-gray-400">
-            Showing top repos for{" "}
-            <span className="font-semibold text-primary">@{username}</span>
-          </p>
-          <button
-            onClick={handleReset}
-            className={`${btn.secondary} text-xs px-3 py-1`}
-          >
-            Change
-          </button>
-        </div>
-      )}
+      {/* Success state profile + languages + repos */}
+      {status === "success" && profile && (
+        <>
+          {/*Success header shows username + change button*/}
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-sm text-text-secondary dark:text-gray-400">
+              Showing top repos for{" "}
+              <span className="font-semibold text-primary">@{username}</span>
+            </p>
+            <button
+              onClick={handleReset}
+              className={`${btn.secondary} text-xs px-3 py-1`}
+            >
+              Change
+            </button>
+          </div>
 
-      {/* Repo grid */}
-      {repos.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {repos.map((repo) => (
-            <RepoCard key={repo.id} repo={repo} />
-          ))}
-        </div>
+          {/* Profile stats bar */}
+          <ProfileStats profile={profile} totalStars={totalStars} />
+
+          {/* Language breakdown */}
+          <LanguageBar repos={repos} />
+
+          {/* Repo grid */}
+          {repos.length > 0 && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {repos.map((repo) => (
+                <RepoCard key={repo.id} repo={repo} />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/*Idle hint*/}
       {status === "idle" && (
         <p className="text-xs text-text-muted dark:text-gray-500">
-          Enter your GitHub username to display your top public repositories.
+          Enter your GitHub username to display your profile, language stats,
+          and top repositories.
         </p>
       )}
     </Section>
