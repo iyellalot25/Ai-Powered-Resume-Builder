@@ -1,5 +1,4 @@
-// ── Reusable mic button ───────────────────────────────────
-// Defined here, also used in ProjectsSection
+// Reusable mic button
 function MicButton({ isListening, onClick }) {
   return (
     <button
