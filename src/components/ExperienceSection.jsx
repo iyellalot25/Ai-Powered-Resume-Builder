@@ -2,6 +2,8 @@ import { useState } from "react";
 import Section from "./Section";
 import { input, btn } from "../styles/ui";
 import { suggestBullets } from "../services/aiService";
+import useSpeechInput from "../hooks/useSpeechInput";
+import MicButton from "./MicButton";
 
 //  Reusable inline-editable text field ─
 // Same click-to-edit pattern from Header, extracted here for use in this file
@@ -67,11 +69,11 @@ function JobCard({
   onRemoveBullet,
   onRemoveJob,
 }) {
-  // AI state — local to each job card, independent of other cards
+  // AI state — local to each job card independent of other cards
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState(null); // null = hidden
 
-  // ── AI: fetch suggestions ────────────────────────────────
+  // ── AI: fetch suggestions
   async function handleSuggestBullets() {
     if (!job.role || !job.company) {
       alert("Please fill in the Job Role and Company name first.");
@@ -103,7 +105,7 @@ function JobCard({
     }
   }
 
-  // ── AI: apply suggestions → replace bullets ──────────────
+  //  AI: apply suggestions => replace bullets
   function handleApplyBullets() {
     onUpdateJob(jobIndex, "bullets", suggestions);
     setSuggestions(null);
@@ -115,7 +117,7 @@ function JobCard({
     >
       {/* Job header row */}
       <div className="flex justify-between items-start gap-4 mb-1">
-        <h3 className="text-base font-semibold text-text-primary flex-1">
+        <h3 className="text-base font-semibold text-text-primary dark:text-white flex-1">
           <InlineEdit
             value={job.role}
             onSave={(val) => onUpdateJob(jobIndex, "role", val)}
@@ -208,7 +210,7 @@ function JobCard({
           )}
         </button>
       </div>
-      {/* ── AI Suggestion Preview Box ── */}
+      {/* AI Suggestion Preview Box*/}
       {suggestions && (
         <div
           className="mt-4 p-4 bg-primary-light border border-primary
@@ -251,6 +253,18 @@ function BulletEdit({ value, onSave }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
+  // Wire the custom hook
+  // When speech result comes in => append it to draft
+  const { isListening, startListening } = useSpeechInput((transcript) => {
+    setDraft((prev) => {
+      const updated = prev ? `${prev} ${transcript}` : transcript;
+      // Auto-save after voice input
+      onSave(updated.trim());
+      return updated;
+    });
+    setIsEditing(false); // exit edit mode after voice input
+  });
+
   function handleSave() {
     const trimmed = draft.trim();
     if (trimmed) onSave(trimmed);
@@ -272,34 +286,49 @@ function BulletEdit({ value, onSave }) {
 
   if (isEditing) {
     return (
-      <textarea
-        autoFocus
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={handleSave}
-        onKeyDown={handleKeyDown}
-        rows={2}
-        className={`${input.base} flex-1 resize-none`}
-      />
+      <div className="flex-1 flex items-start gap-1">
+        <textarea
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={handleKeyDown}
+          rows={2}
+          className={`${input.base} flex-1 resize-none`}
+        />
+        {/* 🎤 mic button — sits beside the textarea */}
+        <MicButton isListening={isListening} onClick={startListening} />
+      </div>
     );
   }
 
   return (
-    <span
-      onClick={() => {
-        setDraft(value);
-        setIsEditing(true);
-      }}
-      title="Click to edit"
-      className="flex-1 text-sm text-text-secondary cursor-pointer
-                 hover:text-primary transition-colors duration-150"
-    >
-      {value || (
-        <span className="text-text-muted italic">
-          Click to add bullet text…
-        </span>
-      )}
-    </span>
+    <div className="flex-1 flex items-start gap-1">
+      <span
+        onClick={() => {
+          setDraft(value);
+          setIsEditing(true);
+        }}
+        title="Click to edit"
+        className="flex-1 text-sm text-text-secondary dark:text-gray-400
+                   cursor-pointer hover:text-primary transition-colors duration-150"
+      >
+        {value || (
+          <span className="text-text-muted italic">
+            Click to add bullet text…
+          </span>
+        )}
+      </span>
+      {/* 🎤 mic button visible on hover even outside edit mode */}
+      <MicButton
+        isListening={isListening}
+        onClick={() => {
+          setDraft(value);
+          setIsEditing(true);
+          setTimeout(startListening, 100); // small delay so edit mode opens first
+        }}
+      />
+    </div>
   );
 }
 

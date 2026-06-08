@@ -65,7 +65,7 @@ function EduCard({ item, eduIndex, onUpdateEdu, onRemoveEdu }) {
     >
       {/* Header row: school name + year badge + delete */}
       <div className="flex justify-between items-start gap-4 mb-1">
-        <h3 className="text-base font-semibold text-text-primary flex-1">
+        <h3 className="text-base font-semibold text-text-primary dark:text-white flex-1">
           <InlineEdit
             value={item.school}
             onSave={(val) => onUpdateEdu(eduIndex, "school", val)}

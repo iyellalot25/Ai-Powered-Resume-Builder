@@ -2,6 +2,8 @@ import { useState } from "react";
 import Section from "./Section";
 import { btn, input, tag } from "../styles/ui";
 import { suggestProjectBullets } from "../services/aiService";
+import useSpeechInput from "../hooks/useSpeechInput";
+import MicButton from "./MicButton";
 
 //  Inline edit
 function InlineEdit({
@@ -14,11 +16,25 @@ function InlineEdit({
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
+  const { isListening, startListening } = useSpeechInput((transcript) => {
+    const updated = draft ? `${draft} ${transcript}` : transcript;
+    setDraft(updated);
+    onSave(updated.trim());
+    setIsEditing(false);
+  });
+
   function handleSave() {
     const trimmed = draft.trim();
     if (trimmed) onSave(trimmed);
     else setDraft(value);
     setIsEditing(false);
+  }
+
+  function handleBlur(e) {
+    if (e.relatedTarget && e.relatedTarget.closest(".mic-btn-container")) {
+      return;
+    }
+    handleSave();
   }
 
   function handleKeyDown(e) {
@@ -38,16 +54,21 @@ function InlineEdit({
       autoFocus: true,
       value: draft,
       onChange: (e) => setDraft(e.target.value),
-      onBlur: handleSave,
+      onBlur: handleBlur,
       onKeyDown: handleKeyDown,
       placeholder,
     };
     return multiline ? (
-      <textarea
-        {...sharedProps}
-        rows={2}
-        className={`${input.base} resize-none ${className}`}
-      />
+      <div className="flex items-start gap-1 w-full">
+        <textarea
+          {...sharedProps}
+          rows={2}
+          className={`${input.base} resize-none flex-1 ${className}`}
+        />
+        <div className="mic-btn-container" tabIndex={0}>
+          <MicButton isListening={isListening} onClick={startListening} />
+        </div>
+      </div>
     ) : (
       <input {...sharedProps} className={`${input.base} ${className}`} />
     );
@@ -67,16 +88,30 @@ function InlineEdit({
   );
 }
 
-// BulletEdit
-function BulletEdit({ value, onSave }) {
+// BulletEdit (Updated to support className configuration)
+function BulletEdit({ value, onSave, className = "" }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+
+  const { isListening, startListening } = useSpeechInput((transcript) => {
+    const updated = draft ? `${draft} ${transcript}` : transcript;
+    setDraft(updated);
+    onSave(updated.trim());
+    setIsEditing(false);
+  });
 
   function handleSave() {
     const trimmed = draft.trim();
     if (trimmed) onSave(trimmed);
     else setDraft(value);
     setIsEditing(false);
+  }
+
+  function handleBlur(e) {
+    if (e.relatedTarget && e.relatedTarget.closest(".mic-btn-container")) {
+      return;
+    }
+    handleSave();
   }
 
   function handleKeyDown(e) {
@@ -92,34 +127,50 @@ function BulletEdit({ value, onSave }) {
 
   if (isEditing) {
     return (
-      <textarea
-        autoFocus
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={handleSave}
-        onKeyDown={handleKeyDown}
-        rows={2}
-        className={`${input.base} flex-1 resize-none`}
-      />
+      <div className="flex-1 flex items-start gap-1">
+        <textarea
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          rows={2}
+          className={`${input.base} flex-1 resize-none`} // <-- Removed custom className here so it won't glow blue
+        />
+        <div className="mic-btn-container" tabIndex={0}>
+          <MicButton isListening={isListening} onClick={startListening} />
+        </div>
+      </div>
     );
   }
 
   return (
-    <span
-      onClick={() => {
-        setDraft(value);
-        setIsEditing(true);
-      }}
-      title="Click to edit"
-      className="flex-1 text-sm text-text-secondary cursor-pointer
-                 hover:text-primary transition-colors duration-150"
-    >
-      {value || (
-        <span className="text-text-muted italic">
-          Click to add bullet text…
-        </span>
-      )}
-    </span>
+    <div className="flex-1 flex items-start gap-1">
+      <span
+        onClick={() => {
+          setDraft(value);
+          setIsEditing(true);
+        }}
+        title="Click to edit"
+        className={`flex-1 text-sm cursor-pointer hover:text-primary transition-colors duration-150 ${className || "text-text-secondary dark:text-gray-400"}`}
+      >
+        {value || (
+          <span className="text-text-muted italic">
+            Click to add bullet text…
+          </span>
+        )}
+      </span>
+      <div className="mic-btn-container" tabIndex={0}>
+        <MicButton
+          isListening={isListening}
+          onClick={() => {
+            setDraft(value);
+            setIsEditing(true);
+            setTimeout(startListening, 100);
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -188,11 +239,11 @@ function ProjectCard({
   return (
     <div
       className="border border-border rounded-xl p-4
-                    hover:border-primary hover:shadow-card-hover transition-all duration-150"
+                      hover:border-primary hover:shadow-card-hover transition-all duration-150"
     >
       {/* Header: project name + link + delete */}
       <div className="flex justify-between items-start gap-2 mb-1">
-        <h3 className="text-base font-semibold text-text-primary flex-1">
+        <h3 className="text-base font-semibold text-text-primary dark:text-white flex-1">
           <InlineEdit
             value={project.name}
             onSave={(val) => onUpdateProject(projIndex, "name", val)}
@@ -213,8 +264,8 @@ function ProjectCard({
           <button
             onClick={() => onRemoveProject(projIndex)}
             className="text-text-muted hover:text-danger transition-colors duration-150
-                       text-xs px-2 py-1 rounded-lg hover:bg-red-50 border border-transparent
-                       hover:border-danger"
+                        text-xs px-2 py-1 rounded-lg hover:bg-red-50 border border-transparent
+                        hover:border-danger"
             title="Remove project"
           >
             🗑
@@ -223,7 +274,7 @@ function ProjectCard({
       </div>
 
       {/* Description */}
-      <p className="text-sm text-text-secondary mt-1 mb-3">
+      <p className="text-sm text-text-secondary dark:text-gray-400 mt-1 mb-3">
         <InlineEdit
           value={project.description}
           onSave={(val) => onUpdateProject(projIndex, "description", val)}
@@ -264,8 +315,8 @@ function ProjectCard({
               <button
                 onClick={() => onRemoveProjectBullet(projIndex, bulletIndex)}
                 className="opacity-0 group-hover:opacity-100 text-text-muted
-                           hover:text-danger transition-all duration-150
-                           mt-1.5 text-xs shrink-0"
+                            hover:text-danger transition-all duration-150
+                            mt-1.5 text-xs shrink-0"
                 title="Remove bullet"
               >
                 ×
@@ -298,8 +349,8 @@ function ProjectCard({
         <button
           onClick={() => onAddProjectBullet(projIndex)}
           className="bg-secondary-light hover:bg-border text-text-secondary
-                     px-3 py-1 rounded-lg text-xs font-medium border border-border
-                     transition-colors duration-150"
+                      px-3 py-1 rounded-lg text-xs font-medium border border-border
+                      transition-colors duration-150"
         >
           + Add Bullet
         </button>
@@ -309,13 +360,13 @@ function ProjectCard({
           onClick={handleSuggestBullets}
           disabled={isLoading}
           className={`${btn.primary} text-xs px-3 py-1 flex items-center gap-1.5
-                      disabled:opacity-50 disabled:cursor-not-allowed`}
+                        disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {isLoading ? (
             <>
               <span
                 className="w-3 h-3 border-2 border-white border-t-transparent
-                               rounded-full animate-spin"
+                                rounded-full animate-spin"
               />
               Generating…
             </>
@@ -325,7 +376,7 @@ function ProjectCard({
         </button>
       </div>
 
-      {/* ── AI Suggestion Preview Box ── */}
+      {/* AI Suggestion Preview Box */}
       {suggestions && (
         <div className="mt-4 p-4 bg-primary-light border border-primary rounded-xl text-sm">
           <p className="text-primary font-semibold mb-2 text-xs uppercase tracking-wide">
@@ -394,8 +445,8 @@ function ProjectsSection({
       <button
         onClick={onAddProject}
         className="w-full mt-4 py-2 rounded-xl border-2 border-dashed border-border
-                   text-text-muted hover:border-primary hover:text-primary
-                   text-sm font-medium transition-colors duration-150"
+                    text-text-muted hover:border-primary hover:text-primary
+                    text-sm font-medium transition-colors duration-150"
       >
         + Add Project
       </button>
