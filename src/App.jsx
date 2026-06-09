@@ -24,10 +24,10 @@ import { useReactToPrint } from "react-to-print";
 
 // Initial_Data
 const INITIAL_DATA = {
-  name: "Srijan Ghosh",
+  name: "John Doe",
   title: "AI/ML Developer",
-  email: "srijan@email.com",
-  location: "India",
+  email: "goat@gmail.com",
+  location: "Barcelona, Spain",
 
   skills: [
     "Python",
