@@ -213,7 +213,7 @@ function App() {
           {/* Preview toggle button */}
           <button
             onClick={() => setIsPreview((prev) => !prev)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+            className={`flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
                 border transition-all duration-150 shadow-card
                 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
                 dark:focus:ring-offset-gray-900
@@ -229,7 +229,7 @@ function App() {
           {/* Download PDF button */}
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+            className="flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
                bg-primary hover:bg-primary-dark text-white
                dark:bg-indigo-800 dark:hover:bg-indigo-700
                shadow-card transition-all duration-150
