@@ -1,4 +1,3 @@
-// src/components/EducationSection.jsx
 import { useState } from "react";
 import Section from "./Section";
 import { input } from "../styles/ui";
@@ -9,6 +8,7 @@ function InlineEdit({
   onSave,
   className = "",
   placeholder = "Click to edit",
+  isPreview = false,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -28,7 +28,7 @@ function InlineEdit({
     }
   }
 
-  if (isEditing) {
+  if (isEditing && !isPreview) {
     return (
       <input
         autoFocus
@@ -45,22 +45,26 @@ function InlineEdit({
   return (
     <span
       onClick={() => {
+        if (isPreview) return; // block in preview
         setDraft(value);
         setIsEditing(true);
       }}
-      title="Click to edit"
-      className={`cursor-pointer hover:text-primary transition-colors duration-150 ${className}`}
+      title={isPreview ? "" : "Click to edit"}
+      className={`transition-colors duration-150 ${isPreview ? "cursor-default" : "cursor-pointer hover:text-primary"} ${className}`}
     >
-      {value || <span className="text-text-muted italic">{placeholder}</span>}
+      {value ||
+        (!isPreview && (
+          <span className="text-text-muted italic">{placeholder}</span>
+        ))}
     </span>
   );
 }
 
 // Single education card
-function EduCard({ item, eduIndex, onUpdateEdu, onRemoveEdu }) {
+function EduCard({ item, eduIndex, onUpdateEdu, onRemoveEdu, isPreview }) {
   return (
     <div
-      className="border border-border rounded-xl p-4 mb-5 last:mb-0
+      className="border border-border dark:border-gray-700 rounded-xl p-4 mb-5 last:mb-0
                     hover:border-primary hover:shadow-card-hover transition-all duration-150"
     >
       {/* Header row: school name + year badge + delete */}
@@ -70,30 +74,35 @@ function EduCard({ item, eduIndex, onUpdateEdu, onRemoveEdu }) {
             value={item.school}
             onSave={(val) => onUpdateEdu(eduIndex, "school", val)}
             placeholder="University Name"
+            isPreview={isPreview}
           />
         </h3>
 
         <div className="flex items-center gap-2 shrink-0">
           {/* Year badge */}
-          <span className="bg-secondary-light text-text-muted px-2 py-1 rounded-full text-xs">
+          <span className="bg-secondary-light dark:bg-gray-700 text-text-muted dark:text-gray-400 px-2 py-1 rounded-full text-xs">
             <InlineEdit
               value={item.year}
               onSave={(val) => onUpdateEdu(eduIndex, "year", val)}
               placeholder="2022 – 2026"
               className="text-xs"
+              isPreview={isPreview}
             />
           </span>
 
           {/* Delete button */}
-          <button
-            onClick={() => onRemoveEdu(eduIndex)}
-            className="text-text-muted hover:text-danger transition-colors duration-150
-                       text-xs px-2 py-1 rounded-lg hover:bg-red-50 border border-transparent
+          {/* Hide delete in preview */}
+          {!isPreview && (
+            <button
+              onClick={() => onRemoveEdu(eduIndex)}
+              className="text-text-muted hover:text-danger transition-colors duration-150
+                       text-xs px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 border border-transparent
                        hover:border-danger"
-            title="Remove this entry"
-          >
-            🗑
-          </button>
+              title="Remove this entry"
+            >
+              🗑
+            </button>
+          )}
         </div>
       </div>
 
@@ -103,17 +112,19 @@ function EduCard({ item, eduIndex, onUpdateEdu, onRemoveEdu }) {
           value={item.degree}
           onSave={(val) => onUpdateEdu(eduIndex, "degree", val)}
           placeholder="Degree / Program"
+          isPreview={isPreview}
         />
       </p>
 
       {/* CGPA — caption style */}
-      <p className="text-xs text-text-muted">
+      <p className="text-xs text-text-muted dark:text-gray-500">
         CGPA:{" "}
         <InlineEdit
           value={item.cgpa}
           onSave={(val) => onUpdateEdu(eduIndex, "cgpa", val)}
           placeholder="e.g. 8.5"
           className="text-xs"
+          isPreview={isPreview}
         />
       </p>
     </div>
@@ -121,7 +132,13 @@ function EduCard({ item, eduIndex, onUpdateEdu, onRemoveEdu }) {
 }
 
 // EducationSection
-function EducationSection({ edu, onUpdateEdu, onAddEdu, onRemoveEdu }) {
+function EducationSection({
+  edu,
+  onUpdateEdu,
+  onAddEdu,
+  onRemoveEdu,
+  isPreview,
+}) {
   return (
     <Section title="Education">
       {edu.map((item, eduIndex) => (
@@ -131,18 +148,22 @@ function EducationSection({ edu, onUpdateEdu, onAddEdu, onRemoveEdu }) {
           eduIndex={eduIndex}
           onUpdateEdu={onUpdateEdu}
           onRemoveEdu={onRemoveEdu}
+          isPreview={isPreview}
         />
       ))}
 
       {/* Add new education */}
-      <button
-        onClick={onAddEdu}
-        className="w-full mt-2 py-2 rounded-xl border-2 border-dashed border-border
-                   text-text-muted hover:border-primary hover:text-primary
+      {/* Hide add button in preview */}
+      {!isPreview && (
+        <button
+          onClick={onAddEdu}
+          className="w-full mt-2 py-2 rounded-xl border-2 border-dashed border-border
+                   dark:border-gray-700 text-text-muted hover:border-primary hover:text-primary
                    text-sm font-medium transition-colors duration-150"
-      >
-        + Add Education
-      </button>
+        >
+          + Add Education
+        </button>
+      )}
     </Section>
   );
 }

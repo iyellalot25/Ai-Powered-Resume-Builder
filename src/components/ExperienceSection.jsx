@@ -12,6 +12,7 @@ function InlineEdit({
   onSave,
   className = "",
   placeholder = "Click to edit",
+  isPreview = false,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -31,7 +32,7 @@ function InlineEdit({
     }
   }
 
-  if (isEditing) {
+  if (isEditing && !isPreview) {
     return (
       <input
         autoFocus
@@ -48,13 +49,15 @@ function InlineEdit({
   return (
     <span
       onClick={() => {
+        if (isPreview) return;
         setDraft(value);
         setIsEditing(true);
       }}
-      title="Click to edit"
-      className={`cursor-pointer hover:text-primary transition-colors duration-150 ${className}`}
+      title={isPreview ? "" : "Click to edit"}
+      className={`cursor-pointer hover:text-primary transition-colors duration-150 ${!isPreview ? "cursor-pointer hover:text-primary" : "cursor-default"} ${className}`}
     >
-      {value || <span className="text-text-muted">{placeholder}</span>}
+      {value ||
+        (!isPreview && <span className="text-text-muted">{placeholder}</span>)}
     </span>
   );
 }
@@ -68,6 +71,7 @@ function JobCard({
   onAddBullet,
   onRemoveBullet,
   onRemoveJob,
+  isPreview,
 }) {
   // AI state — local to each job card independent of other cards
   const [isLoading, setIsLoading] = useState(false);
@@ -122,6 +126,7 @@ function JobCard({
             value={job.role}
             onSave={(val) => onUpdateJob(jobIndex, "role", val)}
             placeholder="Job Title"
+            isPreview={isPreview}
           />
         </h3>
 
@@ -133,19 +138,23 @@ function JobCard({
               onSave={(val) => onUpdateJob(jobIndex, "duration", val)}
               placeholder="2024 – Present"
               className="text-xs"
+              isPreview={isPreview}
             />
           </span>
 
           {/* Delete entire job — danger style, always visible */}
-          <button
-            onClick={() => onRemoveJob(jobIndex)}
-            className="text-text-muted hover:text-danger transition-colors duration-150
+          {/* Hide delete in preview */}
+          {!isPreview && (
+            <button
+              onClick={() => onRemoveJob(jobIndex)}
+              className="text-text-muted hover:text-danger transition-colors duration-150
                        text-xs px-2 py-1 rounded-lg hover:bg-red-50 border border-transparent
                        hover:border-danger"
-            title="Remove this experience"
-          >
-            🗑
-          </button>
+              title="Remove this experience"
+            >
+              🗑
+            </button>
+          )}
         </div>
       </div>
 
@@ -155,6 +164,7 @@ function JobCard({
           value={job.company}
           onSave={(val) => onUpdateJob(jobIndex, "company", val)}
           placeholder="Company Name"
+          isPreview={isPreview}
         />
       </p>
 
@@ -166,52 +176,60 @@ function JobCard({
             <BulletEdit
               value={bullet}
               onSave={(val) => onUpdateBullet(jobIndex, bulletIndex, val)}
+              isPreview={isPreview}
             />
-            <button
-              onClick={() => onRemoveBullet(jobIndex, bulletIndex)}
-              className="opacity-0 group-hover:opacity-100 text-text-muted
+            {/* Hide remove bullet in preview */}
+            {!isPreview && (
+              <button
+                onClick={() => onRemoveBullet(jobIndex, bulletIndex)}
+                className="opacity-0 group-hover:opacity-100 text-text-muted
                          hover:text-danger transition-all duration-150 mt-1.5
                          text-xs shrink-0"
-              title="Remove bullet"
-            >
-              ×
-            </button>
+                title="Remove bullet"
+              >
+                ×
+              </button>
+            )}
           </li>
         ))}
       </ul>
+      {/* Hide in preview */}
       {/* Add bullet + AI button row */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <button
-          onClick={() => onAddBullet(jobIndex)}
-          className="bg-secondary-light hover:bg-border text-text-secondary
+      {!isPreview && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => onAddBullet(jobIndex)}
+            className="bg-secondary-light hover:bg-border text-text-secondary
                      px-3 py-1 rounded-lg text-xs font-medium border border-border
                      transition-colors duration-150"
-        >
-          + Add bullet
-        </button>
+          >
+            + Add bullet
+          </button>
 
-        {/* ✨ AI Suggest Button */}
-        <button
-          onClick={handleSuggestBullets}
-          disabled={isLoading}
-          className={`${btn.primary} text-xs px-3 py-1 flex items-center gap-1.5
+          {/* ✨ AI Suggest Button */}
+          <button
+            onClick={handleSuggestBullets}
+            disabled={isLoading}
+            className={`${btn.primary} text-xs px-3 py-1 flex items-center gap-1.5
                       disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          {isLoading ? (
-            <>
-              <span
-                className="w-3 h-3 border-2 border-white border-t-transparent
+          >
+            {isLoading ? (
+              <>
+                <span
+                  className="w-3 h-3 border-2 border-white border-t-transparent
                                rounded-full animate-spin"
-              />
-              Generating…
-            </>
-          ) : (
-            "✨ Suggest Bullets"
-          )}
-        </button>
-      </div>
+                />
+                Generating…
+              </>
+            ) : (
+              "✨ Suggest Bullets"
+            )}
+          </button>
+        </div>
+      )}
+      {/* Hide in preview */}
       {/* AI Suggestion Preview Box*/}
-      {suggestions && (
+      {!isPreview && suggestions && (
         <div
           className="mt-4 p-4 bg-primary-light border border-primary
                         rounded-xl text-sm"
@@ -249,7 +267,7 @@ function JobCard({
 
 //  Bullet edit: textarea that auto-saves
 // Uses textarea (not input) because bullets can be long
-function BulletEdit({ value, onSave }) {
+function BulletEdit({ value, onSave, isPreview }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
@@ -284,7 +302,10 @@ function BulletEdit({ value, onSave }) {
     }
   }
 
-  if (isEditing) {
+  if (isEditing && !isPreview) {
+    {
+      /* Hidet in preview */
+    }
     return (
       <div className="flex-1 flex items-start gap-1">
         <textarea
@@ -306,6 +327,7 @@ function BulletEdit({ value, onSave }) {
     <div className="flex-1 flex items-start gap-1">
       <span
         onClick={() => {
+          if (isPreview) return; // block editing
           setDraft(value);
           setIsEditing(true);
         }}
@@ -313,21 +335,25 @@ function BulletEdit({ value, onSave }) {
         className="flex-1 text-sm text-text-secondary dark:text-gray-400
                    cursor-pointer hover:text-primary transition-colors duration-150"
       >
-        {value || (
-          <span className="text-text-muted italic">
-            Click to add bullet text…
-          </span>
-        )}
+        {value ||
+          (!isPreview && (
+            <span className="text-text-muted italic">
+              Click to add bullet text…
+            </span>
+          ))}
       </span>
+      {/* Hide mic in preview */}
       {/* 🎤 mic button visible on hover even outside edit mode */}
-      <MicButton
-        isListening={isListening}
-        onClick={() => {
-          setDraft(value);
-          setIsEditing(true);
-          setTimeout(startListening, 100); // small delay so edit mode opens first
-        }}
-      />
+      {!isPreview && (
+        <MicButton
+          isListening={isListening}
+          onClick={() => {
+            setDraft(value);
+            setIsEditing(true);
+            setTimeout(startListening, 100); // small delay so edit mode opens first
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -341,6 +367,7 @@ function ExperienceSection({
   onRemoveBullet,
   onAddJob,
   onRemoveJob,
+  isPreview,
 }) {
   return (
     <Section title="Experience">
@@ -354,18 +381,22 @@ function ExperienceSection({
           onAddBullet={onAddBullet}
           onRemoveBullet={onRemoveBullet}
           onRemoveJob={onRemoveJob}
+          isPreview={isPreview}
         />
       ))}
 
       {/* Add new experience button  */}
-      <button
-        onClick={onAddJob}
-        className="w-full mt-2 py-2 rounded-xl border-2 border-dashed border-border
+      {/* Hide add button in preview */}
+      {!isPreview && (
+        <button
+          onClick={onAddJob}
+          className="w-full mt-2 py-2 rounded-xl border-2 border-dashed border-border
                    text-text-muted hover:border-primary hover:text-primary
                    text-sm font-medium transition-colors duration-150"
-      >
-        + Add Experience
-      </button>
+        >
+          + Add Experience
+        </button>
+      )}
     </Section>
   );
 }

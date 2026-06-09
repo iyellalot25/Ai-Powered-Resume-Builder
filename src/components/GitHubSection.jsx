@@ -206,7 +206,7 @@ function RepoCard({ repo }) {
 }
 
 //GitHubSection
-function GitHubSection() {
+function GitHubSection(isPreview = false) {
   const [username, setUsername] = useState("");
   const [draft, setDraft] = useState("");
   const [repos, setRepos] = useState([]);
@@ -353,19 +353,22 @@ function GitHubSection() {
       {/* Success state profile + languages + repos */}
       {status === "success" && profile && (
         <>
+          {/* Hide change button in preview */}
           {/*Success header shows username + change button*/}
-          <div className="flex justify-between items-center mb-4">
-            <p className="text-sm text-text-secondary dark:text-gray-400">
-              Showing top repos for{" "}
-              <span className="font-semibold text-primary">@{username}</span>
-            </p>
-            <button
-              onClick={handleReset}
-              className={`${btn.secondary} text-xs px-3 py-1`}
-            >
-              Change
-            </button>
-          </div>
+          {!isPreview && (
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-sm text-text-secondary dark:text-gray-400">
+                Showing top repos for{" "}
+                <span className="font-semibold text-primary">@{username}</span>
+              </p>
+              <button
+                onClick={handleReset}
+                className={`${btn.secondary} text-xs px-3 py-1`}
+              >
+                Change
+              </button>
+            </div>
+          )}
 
           {/* Profile stats bar */}
           <ProfileStats profile={profile} totalStars={totalStars} />

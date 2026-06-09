@@ -6,12 +6,20 @@ import { input as inputStyle } from "../styles/ui";
 //   onSave     — called with new value when user finishes editing
 //   className  — any extra Tailwind classes for the display text
 //   inputClass — extra classes for the <input> element
-function EditableField({ value, onSave, className = "", inputClass = "" }) {
+//   isPreview  — blocks editing functionality when true
+function EditableField({
+  value,
+  onSave,
+  className = "",
+  inputClass = "",
+  isPreview = false,
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value); // "draft" = unsaved typing
 
   // When user clicks the text switch to edit mode
   function handleClick() {
+    if (isPreview) return; // ← block editing in preview mode
     setDraft(value); // reset draft to latest saved value
     setIsEditing(true);
   }
@@ -28,7 +36,7 @@ function EditableField({ value, onSave, className = "", inputClass = "" }) {
     if (e.key === "Escape") setIsEditing(false); // cancel on Escape
   }
 
-  if (isEditing) {
+  if (isEditing && !isPreview) {
     return (
       <input
         // autoFocus automatically focuses the input when it appears
@@ -45,15 +53,17 @@ function EditableField({ value, onSave, className = "", inputClass = "" }) {
   return (
     <span
       onClick={handleClick}
-      title="Click to edit" // tooltip on hover
-      className={`cursor-pointer hover:text-primary transition-colors duration-150 ${className}`}
+      title={isPreview ? "" : "Click to edit"} // tooltip on hover
+      className={`transition-colors duration-150
+                  ${!isPreview ? "cursor-pointer hover:text-primary" : "cursor-default"}
+                  ${className}`}
     >
       {value}
     </span>
   );
 }
 
-function Header({ name, title, email, location, onUpdate }) {
+function Header({ name, title, email, location, onUpdate, isPreview }) {
   return (
     <div className="bg-card dark:bg-gray-800 rounded-2xl shadow-card p-8 mb-6 text-center">
       {/* Avatar — shows first letter of name */}
@@ -72,6 +82,7 @@ function Header({ name, title, email, location, onUpdate }) {
           value={name}
           onSave={(val) => onUpdate("name", val)}
           inputClass="text-3xl font-bold text-center"
+          isPreview={isPreview}
         />
       </h1>
 
@@ -81,6 +92,7 @@ function Header({ name, title, email, location, onUpdate }) {
           value={title}
           onSave={(val) => onUpdate("title", val)}
           inputClass="text-sm font-medium text-center"
+          isPreview={isPreview}
         />
       </p>
 
@@ -92,6 +104,7 @@ function Header({ name, title, email, location, onUpdate }) {
             value={email}
             onSave={(val) => onUpdate("email", val)}
             inputClass="text-sm text-center"
+            isPreview={isPreview}
           />
         </span>
         <span className="flex items-center gap-2">
@@ -100,14 +113,17 @@ function Header({ name, title, email, location, onUpdate }) {
             value={location}
             onSave={(val) => onUpdate("location", val)}
             inputClass="text-sm text-center"
+            isPreview={isPreview}
           />
         </span>
       </div>
 
-      {/* Hint text — teaches user the click-to-edit interaction */}
-      <p className="text-xs text-text-muted dark:text-gray-500 mt-3">
-        ✏️ Click any field to edit
-      </p>
+      {/* Hide hint in preview mode */}
+      {!isPreview && (
+        <p className="text-xs text-text-muted dark:text-gray-500 mt-3">
+          ✏️ Click any field to edit
+        </p>
+      )}
     </div>
   );
 }

@@ -95,6 +95,8 @@ function App() {
     () => localStorage.getItem("theme") === "dark",
   );
 
+  const [isPreview, setIsPreview] = useState(false);
+
   // Whenever isDark changes=> add/remove the "dark" class on <html>
   // and save the preference so it persists across page refreshes
   useEffect(() => {
@@ -159,6 +161,7 @@ function App() {
         skills={resume.skills}
         onAdd={addSkill}
         onRemove={removeSkill}
+        isPreview={isPreview}
       />
     ),
     experience: (
@@ -170,6 +173,7 @@ function App() {
         onRemoveBullet={removeBullet}
         onAddJob={addJob}
         onRemoveJob={removeJob}
+        isPreview={isPreview}
       />
     ),
     education: (
@@ -178,6 +182,7 @@ function App() {
         onUpdateEdu={updateEdu}
         onAddEdu={addEdu}
         onRemoveEdu={removeEdu}
+        isPreview={isPreview}
       />
     ),
     projects: (
@@ -191,9 +196,10 @@ function App() {
         onUpdateProjectBullet={updateProjectBullet}
         onAddProjectBullet={addProjectBullet}
         onRemoveProjectBullet={removeProjectBullet}
+        isPreview={isPreview}
       />
     ),
-    github: <GitHubSection />,
+    github: <GitHubSection isPreview={isPreview} />,
   };
 
   return (
@@ -204,6 +210,22 @@ function App() {
       <div className="max-w-3xl mx-auto">
         {/* Toolbar — hidden when printing */}
         <div className="flex justify-end items-center gap-3 mb-4 print:hidden">
+          {/* Preview toggle button */}
+          <button
+            onClick={() => setIsPreview((prev) => !prev)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+                border transition-all duration-150 shadow-card
+                focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                dark:focus:ring-offset-gray-900
+                ${
+                  isPreview
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card dark:bg-gray-800 text-text-secondary dark:text-gray-300 border-border dark:border-gray-700 hover:border-primary"
+                }`}
+          >
+            {isPreview ? "✏️ Edit" : "👁 Preview"}
+          </button>
+
           {/* Download PDF button */}
           <button
             onClick={handlePrint}
@@ -247,6 +269,7 @@ function App() {
             email={resume.email}
             location={resume.location}
             onUpdate={updateField}
+            isPreview={isPreview}
           />
 
           {/* DndContext wraps everything that can be dragged */}
@@ -262,7 +285,11 @@ function App() {
             >
               {/* Render sections in current order */}
               {resume.sectionOrder.map((sectionId) => (
-                <SortableSection key={sectionId} id={sectionId}>
+                <SortableSection
+                  key={sectionId}
+                  id={sectionId}
+                  isPreview={isPreview}
+                >
                   {sectionMap[sectionId]}
                 </SortableSection>
               ))}

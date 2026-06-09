@@ -3,7 +3,7 @@ import Section from "./Section";
 import { btn, input, tag } from "../styles/ui";
 import { suggestSkills } from "../services/aiService";
 
-function SkillsSection({ skills, onAdd, onRemove }) {
+function SkillsSection({ skills, onAdd, onRemove, isPreview }) {
   // Local state: what the user is currently typing in the "add skill" input
   const [draft, setDraft] = useState("");
 
@@ -87,169 +87,177 @@ function SkillsSection({ skills, onAdd, onRemove }) {
         {skills.map((skill) => (
           <span key={skill} className={tag.skill}>
             {skill}
-            {/* × remove button sits inside the tag */}
-            <button
-              onClick={() => onRemove(skill)}
-              className={btn.pill}
-              title={`Remove ${skill}`}
-              aria-label={`Remove ${skill}`}
-            >
-              ×
-            </button>
+            {/* Hide × button in preview mode */}
+            {!isPreview && (
+              /* × remove button sits inside the tag */
+              <button
+                onClick={() => onRemove(skill)}
+                className={btn.pill}
+                title={`Remove ${skill}`}
+                aria-label={`Remove ${skill}`}
+              >
+                ×
+              </button>
+            )}
           </span>
         ))}
       </div>
 
-      {/* Add new skill row */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Add a skill… (e.g. PyTorch)"
-          className={input.base}
-        />
-        <button
-          onClick={handleAdd}
-          disabled={!draft.trim()} // disable if input is empty
-          className={btn.primary}
-        >
-          Add
-        </button>
-
-        {/* ✨ Suggestopens role prompt instead of calling AI directly */}
-        <button
-          onClick={handleSuggestClick}
-          disabled={isLoading || showRolePrompt}
-          className={`${btn.secondary} flex items-center gap-1.5 shrink-0
-                      disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          {isLoading ? (
-            <>
-              <span
-                className="w-3 h-3 border-2 border-secondary border-t-transparent
-                               rounded-full animate-spin"
-              />
-              Thinking…
-            </>
-          ) : (
-            "✨ Suggest"
-          )}
-        </button>
-      </div>
-
-      {/* Hint */}
-      <p className="text-xs text-text-muted mt-2">
-        Press Enter or click Add — click × to remove a skill
-      </p>
-
-      {/*  Role Prompt Box  */}
-      {showRolePrompt && (
-        <div className="mt-3 p-4 bg-secondary-light border border-border rounded-xl">
-          <p className="text-xs font-semibold text-text-secondary mb-2">
-            What role are you targeting? (e.g. AI/ML Engineer, Frontend
-            Developer)
-          </p>
+      {/* Hide everything below in preview mode */}
+      {!isPreview && (
+        <>
+          {/* Add new skill row */}
           <div className="flex gap-2">
             <input
-              autoFocus
               type="text"
-              value={roleDraft}
-              onChange={(e) => setRoleDraft(e.target.value)}
-              onKeyDown={handleRoleKeyDown}
-              placeholder="e.g. Full Stack Developer"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Add a skill… (e.g. PyTorch)"
               className={input.base}
             />
             <button
-              onClick={handleRoleSubmit}
-              disabled={!roleDraft.trim()}
-              className={`${btn.primary} shrink-0 disabled:opacity-50
-                          disabled:cursor-not-allowed`}
+              onClick={handleAdd}
+              disabled={!draft.trim()} // disable if input is empty
+              className={btn.primary}
             >
-              Go
+              Add
             </button>
+
+            {/* ✨ Suggestopens role prompt instead of calling AI directly */}
             <button
-              onClick={() => setShowRolePrompt(false)}
-              className={`${btn.secondary} shrink-0`}
+              onClick={handleSuggestClick}
+              disabled={isLoading || showRolePrompt}
+              className={`${btn.secondary} flex items-center gap-1.5 shrink-0
+                          disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              Cancel
+              {isLoading ? (
+                <>
+                  <span
+                    className="w-3 h-3 border-2 border-secondary border-t-transparent
+                               rounded-full animate-spin"
+                  />
+                  Thinking…
+                </>
+              ) : (
+                "✨ Suggest"
+              )}
             </button>
           </div>
-        </div>
-      )}
 
-      {/*AI Suggestion Preview*/}
-      {suggestions.length > 0 && (
-        <div className="mt-4 p-4 bg-primary-light border border-primary rounded-xl">
-          <div className="flex justify-between items-center mb-2">
-            <p className="text-xs font-semibold text-primary uppercase tracking-wide">
-              ✨ Suggested Skills — click to add
-            </p>
-            <div className="flex gap-2">
-              {/* Add All only if at least one non-duplicate, non-error chip exists */}
-              {suggestions.some(
-                (s) => !skills.includes(s) && !s.startsWith("⚠️"),
-              ) && (
+          {/* Hint */}
+          <p className="text-xs text-text-muted mt-2">
+            Press Enter or click Add — click × to remove a skill
+          </p>
+
+          {/* Role Prompt Box  */}
+          {showRolePrompt && (
+            <div className="mt-3 p-4 bg-secondary-light border border-border rounded-xl">
+              <p className="text-xs font-semibold text-text-secondary mb-2">
+                What role are you targeting? (e.g. AI/ML Engineer, Frontend
+                Developer)
+              </p>
+              <div className="flex gap-2">
+                <input
+                  autoFocus
+                  type="text"
+                  value={roleDraft}
+                  onChange={(e) => setRoleDraft(e.target.value)}
+                  onKeyDown={handleRoleKeyDown}
+                  placeholder="e.g. Full Stack Developer"
+                  className={input.base}
+                />
                 <button
-                  onClick={handleAddAll}
-                  className={`${btn.primary} text-xs px-2 py-1`}
+                  onClick={handleRoleSubmit}
+                  disabled={!roleDraft.trim()}
+                  className={`${btn.primary} shrink-0 disabled:opacity-50
+                              disabled:cursor-not-allowed`}
                 >
-                  + Add All
+                  Go
                 </button>
-              )}
-              <button
-                onClick={() => setSuggestions([])}
-                className={`${btn.secondary} text-xs px-2 py-1`}
-              >
-                Dismiss
-              </button>
+                <button
+                  onClick={() => setShowRolePrompt(false)}
+                  className={`${btn.secondary} shrink-0`}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex flex-wrap gap-2">
-            {suggestions.map((skill) => {
-              const isError = skill.startsWith("⚠️");
-              const isAlreadyAdded = skills.includes(skill);
-
-              // ── Error chip
-              if (isError) {
-                return (
-                  <span key={skill} className="text-xs text-danger">
-                    {skill}
-                  </span>
-                );
-              }
-
-              // Already added chip greyed out, not clickable
-              if (isAlreadyAdded) {
-                return (
-                  <span
-                    key={skill}
-                    className="bg-secondary-light text-text-muted
-                               px-3 py-1 rounded-full text-sm
-                               flex items-center gap-1 cursor-default"
-                    title="Already in your skills"
+          {/*AI Suggestion Preview*/}
+          {suggestions.length > 0 && (
+            <div className="mt-4 p-4 bg-primary-light border border-primary rounded-xl">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wide">
+                  ✨ Suggested Skills — click to add
+                </p>
+                <div className="flex gap-2">
+                  {/* Add All only if at least one non-duplicate, non-error chip exists */}
+                  {suggestions.some(
+                    (s) => !skills.includes(s) && !s.startsWith("⚠️"),
+                  ) && (
+                    <button
+                      onClick={handleAddAll}
+                      className={`${btn.primary} text-xs px-2 py-1`}
+                    >
+                      + Add All
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setSuggestions([])}
+                    className={`${btn.secondary} text-xs px-2 py-1`}
                   >
-                    ✓ {skill}
-                  </span>
-                );
-              }
+                    Dismiss
+                  </button>
+                </div>
+              </div>
 
-              //  Normal chip; clickable
-              return (
-                <button
-                  key={skill}
-                  onClick={() => handleAddSuggestion(skill)}
-                  className={`${tag.skill} cursor-pointer hover:bg-primary
-                              hover:text-white transition-colors duration-150`}
-                >
-                  + {skill}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((skill) => {
+                  const isError = skill.startsWith("⚠️");
+                  const isAlreadyAdded = skills.includes(skill);
+
+                  // ── Error chip
+                  if (isError) {
+                    return (
+                      <span key={skill} className="text-xs text-danger">
+                        {skill}
+                      </span>
+                    );
+                  }
+
+                  // Already added chip greyed out, not clickable
+                  if (isAlreadyAdded) {
+                    return (
+                      <span
+                        key={skill}
+                        className="bg-secondary-light text-text-muted
+                                   px-3 py-1 rounded-full text-sm
+                                   flex items-center gap-1 cursor-default"
+                        title="Already in your skills"
+                      >
+                        ✓ {skill}
+                      </span>
+                    );
+                  }
+
+                  //  Normal chip; clickable
+                  return (
+                    <button
+                      key={skill}
+                      onClick={() => handleAddSuggestion(skill)}
+                      className={`${tag.skill} cursor-pointer hover:bg-primary
+                                  hover:text-white transition-colors duration-150`}
+                    >
+                      + {skill}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </Section>
   );
