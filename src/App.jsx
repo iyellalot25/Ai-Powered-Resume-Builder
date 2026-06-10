@@ -87,7 +87,19 @@ const INITIAL_DATA = {
 };
 
 function App() {
-  const [resume, setResume] = useState(INITIAL_DATA);
+  const [resume, setResume] = useState(() => {
+    try {
+      const saved = localStorage.getItem("resumeData");
+      return saved ? JSON.parse(saved) : INITIAL_DATA;
+    } catch {
+      return INITIAL_DATA; // safety net if JSON is corrupted
+    }
+  });
+
+  // Auto-save resume to localStorage on every change
+  useEffect(() => {
+    localStorage.setItem("resumeData", JSON.stringify(resume));
+  }, [resume]);
 
   // Dark mode state
   // Read saved preference from localStorage on first load
@@ -210,6 +222,20 @@ function App() {
       <div className="max-w-3xl mx-auto">
         {/* Toolbar — hidden when printing */}
         <div className="flex justify-end items-center gap-3 mb-4 print:hidden">
+          {/* Reset resume data button */}
+          <button
+            onClick={() => {
+              localStorage.removeItem("resumeData");
+              setResume(INITIAL_DATA);
+            }}
+            className="flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
+                      bg-white dark:bg-gray-800 text-danger border border-danger
+                      hover:bg-red-100 dark:hover:bg-red-950
+                      shadow-card transition-all duration-150"
+          >
+            🗑 Reset
+          </button>
+
           {/* Preview toggle button */}
           <button
             onClick={() => setIsPreview((prev) => !prev)}
