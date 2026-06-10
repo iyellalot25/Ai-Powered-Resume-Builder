@@ -114,7 +114,7 @@ function BulletEdit({ value, onSave, className = "", isPreview = false }) {
 
   function handleBlur(e) {
     if (e.relatedTarget && e.relatedTarget.closest(".mic-btn-container")) {
-      return;
+      return; //dont handleblur when mic is clicked
     }
     handleSave();
   }
