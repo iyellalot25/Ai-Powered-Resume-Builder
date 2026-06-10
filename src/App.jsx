@@ -19,6 +19,7 @@ import EducationSection from "./components/EducationSection";
 import ProjectsSection from "./components/ProjectsSection";
 import SortableSection from "./components/SortableSection";
 import GitHubSection from "./components/GitHubSection";
+import ATSScorer from "./components/ATSScorer";
 
 import { useReactToPrint } from "react-to-print";
 
@@ -321,6 +322,11 @@ function App() {
               ))}
             </SortableContext>
           </DndContext>
+
+          {/* ATS Scorer — hidden when printing */}
+          <div className="print:hidden">
+            <ATSScorer resume={resume} />
+          </div>
         </div>
       </div>
     </div>
