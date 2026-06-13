@@ -23,6 +23,8 @@ import ATSScorer from "./components/ATSScorer";
 
 import { useReactToPrint } from "react-to-print";
 
+import { motion } from "framer-motion";
+
 // Initial_Data
 const INITIAL_DATA = {
   name: "John Doe",
@@ -224,7 +226,9 @@ function App() {
         {/* Toolbar — hidden when printing */}
         <div className="flex justify-end items-center gap-3 mb-4 print:hidden">
           {/* Reset resume data button */}
-          <button
+          <motion.button
+            whileTap={{ scale: 0.92 }} // slight squish on click
+            whileHover={{ scale: 1.08 }} // slight grow on hover
             onClick={() => {
               localStorage.removeItem("resumeData");
               setResume(INITIAL_DATA);
@@ -235,10 +239,12 @@ function App() {
                       shadow-card transition-all duration-150"
           >
             🗑 Reset
-          </button>
+          </motion.button>
 
           {/* Preview toggle button */}
-          <button
+          <motion.button
+            whileTap={{ scale: 0.92 }} // slight squish on click
+            whileHover={{ scale: 1.08 }} // slight grow on hover
             onClick={() => setIsPreview((prev) => !prev)}
             className={`flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
                 border transition-all duration-150 shadow-card
@@ -251,10 +257,12 @@ function App() {
                 }`}
           >
             {isPreview ? "✏️ Edit" : "👁 Preview"}
-          </button>
+          </motion.button>
 
           {/* Download PDF button */}
-          <button
+          <motion.button
+            whileTap={{ scale: 0.92 }} // slight squish on click
+            whileHover={{ scale: 1.06 }} // slight grow on hover
             onClick={handlePrint}
             className="flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
                bg-primary hover:bg-primary-dark text-white
@@ -264,9 +272,11 @@ function App() {
                dark:focus:ring-offset-gray-900"
           >
             ⬇️ Download PDF
-          </button>
+          </motion.button>
           {/* Dark mode toggle button*/}
-          <button
+          <motion.button
+            whileTap={{ scale: 0.92 }} // slight squish on click
+            whileHover={{ scale: 1.08 }} // slight grow on hover
             onClick={toggleDark}
             title="Toggle dark mode"
             className={`relative w-16 h-8 rounded-full transition-colors duration-300
@@ -283,7 +293,7 @@ function App() {
             >
               {isDark ? "🌙" : "☀️"}
             </span>
-          </button>
+          </motion.button>
         </div>
 
         {/* ── Printable resume area ── */}

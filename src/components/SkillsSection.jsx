@@ -2,6 +2,7 @@ import { useState } from "react";
 import Section from "./Section";
 import { btn, input, tag } from "../styles/ui";
 import { suggestSkills } from "../services/aiService";
+import { motion, AnimatePresence } from "framer-motion";
 
 function SkillsSection({ skills, onAdd, onRemove, isPreview }) {
   // Local state: what the user is currently typing in the "add skill" input
@@ -83,24 +84,34 @@ function SkillsSection({ skills, onAdd, onRemove, isPreview }) {
   return (
     <Section title="Skills">
       {/*Skill tag list */}
+
       <div className="flex flex-wrap gap-2 mb-4">
-        {skills.map((skill) => (
-          <span key={skill} className={tag.skill}>
-            {skill}
-            {/* Hide × button in preview mode */}
-            {!isPreview && (
-              /* × remove button sits inside the tag */
-              <button
-                onClick={() => onRemove(skill)}
-                className={btn.pill}
-                title={`Remove ${skill}`}
-                aria-label={`Remove ${skill}`}
-              >
-                ×
-              </button>
-            )}
-          </span>
-        ))}
+        <AnimatePresence>
+          {skills.map((skill) => (
+            <motion.span
+              key={skill}
+              initial={{ opacity: 0, scale: 0.7 }} // start: invisible + small
+              animate={{ opacity: 1, scale: 1 }} // end: normal
+              exit={{ opacity: 0, scale: 0.7 }} // leaving: shrink + fade
+              transition={{ duration: 0.15 }}
+              className={tag.skill}
+            >
+              {skill}
+              {/* Hide × button in preview mode */}
+              {!isPreview && (
+                /* × remove button sits inside the tag */
+                <button
+                  onClick={() => onRemove(skill)}
+                  className={btn.pill}
+                  title={`Remove ${skill}`}
+                  aria-label={`Remove ${skill}`}
+                >
+                  ×
+                </button>
+              )}
+            </motion.span>
+          ))}
+        </AnimatePresence>
       </div>
 
       {/* Hide everything below in preview mode */}
