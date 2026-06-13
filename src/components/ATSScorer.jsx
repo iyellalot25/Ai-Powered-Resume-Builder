@@ -1,7 +1,9 @@
+// src/components/ATSScorer.jsx
 import { useState } from "react";
 import { btn, input, card } from "../styles/ui";
+import { extractATSKeywords } from "../services/aiService";
 
-// Stop words we ignore when extracting keywords
+// Fallback extractor used only if AI fails
 const STOP_WORDS = new Set([
   "the",
   "and",
@@ -75,46 +77,43 @@ const STOP_WORDS = new Set([
   "need",
 ]);
 
-//Keyword extractor
-// Takes a string => returns array of unique meaningful words
-function extractKeywords(text) {
+function fallbackExtract(text) {
   return [
     ...new Set(
       text
         .toLowerCase()
-        .replace(/[^a-z0-9\s+#]/g, " ") // keep letters, numbers, + and #
-        .split(/\s+/) // split on whitespace
-        .filter((w) => w.length > 2 && !STOP_WORDS.has(w)), // remove stop words
+        .replace(/-/g, " ")
+        .replace(/[^a-z0-9+#\s]/g, " ")
+        .split(/\s+/)
+        .filter((w) => w.length > 2 && !STOP_WORDS.has(w) && !/^\d+$/.test(w)),
     ),
   ];
 }
 
-// core color helper
-// Returns a Tailwind color class based on score
+// Score helpers
 function scoreColor(score) {
   if (score >= 70) return "text-emerald-500";
   if (score >= 40) return "text-amber-500";
   return "text-rose-500";
 }
-
 function scoreBg(score) {
   if (score >= 70) return "border-emerald-500";
   if (score >= 40) return "border-amber-500";
   return "border-rose-500";
 }
-
 function scoreLabel(score) {
   if (score >= 70) return "Strong Match ✅";
   if (score >= 40) return "Partial Match ⚠️";
   return "Weak Match ❌";
 }
 
-// Main Component
 export default function ATSScorer({ resume }) {
   const [jobDesc, setJobDesc] = useState("");
-  const [result, setResult] = useState(null); // null cuz not scored yet
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [aiUsed, setAiUsed] = useState(false); // track whether AI or fallback ran
 
-  // Flatten all resume text into one big lowercase string
+  // Flatten all resume content into one searchable string
   function getResumeText() {
     return [
       resume.name,
@@ -130,27 +129,50 @@ export default function ATSScorer({ resume }) {
       .toLowerCase();
   }
 
-  function handleAnalyse() {
+  async function handleAnalyse() {
     if (!jobDesc.trim()) return;
+    setLoading(true);
+    setResult(null);
 
     const resumeText = getResumeText();
-    const jdKeywords = extractKeywords(jobDesc);
 
-    const matched = jdKeywords.filter((kw) => resumeText.includes(kw));
-    const missing = jdKeywords.filter((kw) => !resumeText.includes(kw));
-    const score = Math.round((matched.length / jdKeywords.length) * 100);
+    // Ask AI to extract clean keywords
+    const aiResponse = await extractATSKeywords(jobDesc);
 
-    setResult({ score, matched, missing, total: jdKeywords.length });
+    let keywords;
+    if (aiResponse) {
+      // AI returned a comma-separated list — clean and split it
+      keywords = aiResponse
+        .split(",")
+        .map((k) => k.trim().toLowerCase())
+        .filter((k) => k.length > 1);
+      setAiUsed(true);
+    } else {
+      // AI failed — use fallback regex extractor
+      keywords = fallbackExtract(jobDesc);
+      setAiUsed(false);
+    }
+
+    // Remove duplicates
+    const uniqueKeywords = [...new Set(keywords)];
+
+    const matched = uniqueKeywords.filter((kw) => resumeText.includes(kw));
+    const missing = uniqueKeywords.filter((kw) => !resumeText.includes(kw));
+    const score = Math.round((matched.length / uniqueKeywords.length) * 100);
+
+    setResult({ score, matched, missing, total: uniqueKeywords.length });
+    setLoading(false);
   }
 
   function handleReset() {
     setJobDesc("");
     setResult(null);
+    setAiUsed(false);
   }
 
   return (
     <div className={card.section}>
-      {/* Section Title*/}
+      {/* Title */}
       <h2
         className="text-xl font-semibold text-text-primary dark:text-gray-100
                      border-l-4 border-primary pl-3 mb-4"
@@ -158,13 +180,12 @@ export default function ATSScorer({ resume }) {
         🎯 ATS Keyword Scorer
       </h2>
 
-      {/*Explanation */}
       <p className="text-sm text-text-secondary dark:text-gray-400 mb-4">
-        Paste a job description below. We'll compare it against your resume and
-        show how well you match.
+        Paste a job description — AI will extract the real keywords and score
+        your resume against them.
       </p>
 
-      {/*Textarea*/}
+      {/* Textarea */}
       <textarea
         value={jobDesc}
         onChange={(e) => setJobDesc(e.target.value)}
@@ -173,10 +194,14 @@ export default function ATSScorer({ resume }) {
         className={`${input.base} resize-none mb-3`}
       />
 
-      {/*Buttons */}
+      {/* Buttons */}
       <div className="flex gap-2 mb-6">
-        <button onClick={handleAnalyse} className={btn.primary}>
-          Analyse
+        <button
+          onClick={handleAnalyse}
+          disabled={loading || !jobDesc.trim()}
+          className={btn.primary}
+        >
+          {loading ? "Analysing…" : "Analyse"}
         </button>
         {result && (
           <button onClick={handleReset} className={btn.secondary}>
@@ -185,9 +210,35 @@ export default function ATSScorer({ resume }) {
         )}
       </div>
 
-      {/*Results*/}
+      {/* Loading state */}
+      {loading && (
+        <div
+          className="flex items-center gap-2 text-sm text-text-muted
+                        dark:text-gray-400 animate-pulse"
+        >
+          <span>🤖 AI is extracting keywords…</span>
+        </div>
+      )}
+
+      {/* Results */}
       {result && (
         <div className="space-y-5">
+          {/* AI / fallback badge */}
+          <div className="flex justify-center">
+            <span
+              className={`text-xs px-3 py-1 rounded-full font-medium
+              ${
+                aiUsed
+                  ? "bg-primary-light dark:bg-indigo-900 text-primary dark:text-indigo-300"
+                  : "bg-secondary-light dark:bg-gray-700 text-text-muted dark:text-gray-400"
+              }`}
+            >
+              {aiUsed
+                ? "🤖 AI-powered analysis"
+                : "⚙️ Basic analysis (AI unavailable)"}
+            </span>
+          </div>
+
           {/* Score circle */}
           <div className="flex flex-col items-center gap-1">
             <div
@@ -210,7 +261,7 @@ export default function ATSScorer({ resume }) {
             </span>
           </div>
 
-          {/* Matched keywords */}
+          {/* Matched */}
           {result.matched.length > 0 && (
             <div>
               <h3
@@ -233,7 +284,7 @@ export default function ATSScorer({ resume }) {
             </div>
           )}
 
-          {/* Missing keywords */}
+          {/* Missing */}
           {result.missing.length > 0 && (
             <div>
               <h3
