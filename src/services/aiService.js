@@ -110,3 +110,24 @@ Description: ${description}`;
     return BULLET_SUGGESTIONS[key].join("\n");
   }
 }
+
+// Feature: ATS Keyword Extraction
+// Takes a job description, returns only meaningful technical keywords
+export async function extractATSKeywords(jobDescription) {
+  const system = `You are an ATS (Applicant Tracking System) expert.
+Extract only the important, specific keywords from a job description.
+Focus on: technical skills, programming languages, tools, frameworks, methodologies.
+Ignore: generic words, company names, salary info, soft skills like "teamwork".
+Return ONLY a comma-separated list of keywords, nothing else.
+Example: Python, REST API, Docker, Java, SQL, Agile, Git`;
+
+  const user = `Job description:\n${jobDescription}`;
+
+  try {
+    return await callHuggingFace(system, user);
+  } catch (err) {
+    console.warn("AI unavailable for ATS, using fallback:", err.message);
+    // Fallback: return null so ATSScorer knows to use basic extraction
+    return null;
+  }
+}
