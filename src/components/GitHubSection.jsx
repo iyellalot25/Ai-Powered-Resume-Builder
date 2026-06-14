@@ -206,7 +206,7 @@ function RepoCard({ repo }) {
 }
 
 //GitHubSection
-function GitHubSection(isPreview = false) {
+function GitHubSection({ isPreview, template }) {
   const [username, setUsername] = useState("");
   const [draft, setDraft] = useState("");
   const [repos, setRepos] = useState([]);
@@ -299,7 +299,7 @@ function GitHubSection(isPreview = false) {
   }
 
   return (
-    <Section title="GitHub">
+    <Section title="GitHub" template={template}>
       {/*Search bar hidden after successful fetch*/}
       {status !== "success" && (
         <div className="flex gap-2 mb-4">

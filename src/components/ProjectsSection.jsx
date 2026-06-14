@@ -454,9 +454,10 @@ function ProjectsSection({
   onAddProjectBullet,
   onRemoveProjectBullet,
   isPreview,
+  template,
 }) {
   return (
-    <Section title="Projects">
+    <Section title="Projects" template={template}>
       <div className="grid grid-cols-1 gap-4">
         {projects.map((project, projIndex) => (
           <ProjectCard

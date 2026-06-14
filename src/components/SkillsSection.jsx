@@ -4,7 +4,7 @@ import { btn, input, tag } from "../styles/ui";
 import { suggestSkills } from "../services/aiService";
 import { motion, AnimatePresence } from "framer-motion";
 
-function SkillsSection({ skills, onAdd, onRemove, isPreview }) {
+function SkillsSection({ skills, onAdd, onRemove, isPreview, template }) {
   // Local state: what the user is currently typing in the "add skill" input
   const [draft, setDraft] = useState("");
 
@@ -82,7 +82,7 @@ function SkillsSection({ skills, onAdd, onRemove, isPreview }) {
   }
 
   return (
-    <Section title="Skills">
+    <Section title="Skills" template={template}>
       {/*Skill tag list */}
 
       <div className="flex flex-wrap gap-2 mb-4">
@@ -94,7 +94,7 @@ function SkillsSection({ skills, onAdd, onRemove, isPreview }) {
               animate={{ opacity: 1, scale: 1 }} // end: normal
               exit={{ opacity: 0, scale: 0.7 }} // leaving: shrink + fade
               transition={{ duration: 0.15 }}
-              className={tag.skill}
+              className={template.skillTag}
             >
               {skill}
               {/* Hide × button in preview mode */}

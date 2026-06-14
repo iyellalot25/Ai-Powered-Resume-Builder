@@ -7,20 +7,18 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 }, // end: fully visible, normal position
 };
 
-function Section({ title, children }) {
+function Section({ title, children, template }) {
   return (
     <motion.div
       variants={cardVariants}
       initial="hidden"
       animate="visible"
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="bg-gray-300 dark:bg-gray-800 rounded-2xl shadow-sm p-6 mb-6"
+      className={template.card} //dynamic
     >
       {/* Section title with a left accent bar */}
-      <h2
-        className="text-xl font-bold text-gray-900 dark:text-gray-100
-                     border-l-4 border-indigo-500 pl-3 mb-4"
-      >
+      <h2 className={template.title}>
+        {/* dynamic */}
         {title}
       </h2>
       {/* Whatever put inside <Section>...</Section> renders here */}

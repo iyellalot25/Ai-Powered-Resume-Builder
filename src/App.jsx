@@ -20,6 +20,7 @@ import ProjectsSection from "./components/ProjectsSection";
 import SortableSection from "./components/SortableSection";
 import GitHubSection from "./components/GitHubSection";
 import ATSScorer from "./components/ATSScorer";
+import { templates, TEMPLATE_IDS } from "./styles/templates";
 
 import { useReactToPrint } from "react-to-print";
 
@@ -125,6 +126,15 @@ function App() {
     }
   }, [isDark]);
 
+  const [activeTemplate, setActiveTemplate] = useState(
+    () => localStorage.getItem("resumeTemplate") ?? "modern",
+  );
+
+  // Save template preference whenever it changes
+  useEffect(() => {
+    localStorage.setItem("resumeTemplate", activeTemplate);
+  }, [activeTemplate]);
+
   function toggleDark() {
     setIsDark((prev) => !prev);
   }
@@ -177,6 +187,7 @@ function App() {
         onAdd={addSkill}
         onRemove={removeSkill}
         isPreview={isPreview}
+        template={templates[activeTemplate]}
       />
     ),
     experience: (
@@ -189,6 +200,7 @@ function App() {
         onAddJob={addJob}
         onRemoveJob={removeJob}
         isPreview={isPreview}
+        template={templates[activeTemplate]}
       />
     ),
     education: (
@@ -198,6 +210,7 @@ function App() {
         onAddEdu={addEdu}
         onRemoveEdu={removeEdu}
         isPreview={isPreview}
+        template={templates[activeTemplate]}
       />
     ),
     projects: (
@@ -212,9 +225,15 @@ function App() {
         onAddProjectBullet={addProjectBullet}
         onRemoveProjectBullet={removeProjectBullet}
         isPreview={isPreview}
+        template={templates[activeTemplate]}
       />
     ),
-    github: <GitHubSection isPreview={isPreview} />,
+    github: (
+      <GitHubSection
+        isPreview={isPreview}
+        template={templates[activeTemplate]}
+      />
+    ),
   };
 
   return (
@@ -224,29 +243,54 @@ function App() {
     >
       <div className="max-w-3xl mx-auto">
         {/* Toolbar — hidden when printing */}
-        <div className="flex justify-end items-center gap-3 mb-4 print:hidden">
-          {/* Reset resume data button */}
-          <motion.button
-            whileTap={{ scale: 0.92 }} // slight squish on click
-            whileHover={{ scale: 1.08 }} // slight grow on hover
-            onClick={() => {
-              localStorage.removeItem("resumeData");
-              setResume(INITIAL_DATA);
-            }}
-            className="flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
-                      bg-white dark:bg-gray-800 text-danger border border-danger
-                      hover:bg-red-100 dark:hover:bg-red-950
-                      shadow-card transition-all duration-150"
-          >
-            🗑 Reset
-          </motion.button>
+        <div className="flex justify-between items-center gap-3 mb-4 print:hidden w-full">
+          {/* Left alignment group for core document actions */}
+          <div className="flex items-center gap-3">
+            {/* Template switcher */}
+            <div
+              className="flex items-center gap-1 bg-card dark:bg-gray-800
+              border border-border dark:border-gray-700
+              rounded-lg p-1 shadow-card"
+            >
+              {TEMPLATE_IDS.map((id) => (
+                <motion.button
+                  key={id}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => setActiveTemplate(id)}
+                  className={`px-3 h-7 rounded-md text-xs font-medium transition-all duration-150
+                  ${
+                    activeTemplate === id
+                      ? "bg-primary text-white"
+                      : "text-text-secondary dark:text-gray-400 hover:text-primary"
+                  }`}
+                >
+                  {templates[id].name}
+                </motion.button>
+              ))}
+            </div>
 
-          {/* Preview toggle button */}
-          <motion.button
-            whileTap={{ scale: 0.92 }} // slight squish on click
-            whileHover={{ scale: 1.08 }} // slight grow on hover
-            onClick={() => setIsPreview((prev) => !prev)}
-            className={`flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
+            {/* Reset resume data button */}
+            <motion.button
+              whileTap={{ scale: 0.92 }} // slight squish on click
+              whileHover={{ scale: 1.08 }} // slight grow on hover
+              onClick={() => {
+                localStorage.removeItem("resumeData");
+                setResume(INITIAL_DATA);
+              }}
+              className="flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
+                bg-white dark:bg-gray-800 text-danger border border-danger
+                hover:bg-red-100 dark:hover:bg-red-950
+                shadow-card transition-all duration-150"
+            >
+              🗑 Reset
+            </motion.button>
+
+            {/* Preview toggle button */}
+            <motion.button
+              whileTap={{ scale: 0.92 }} // slight squish on click
+              whileHover={{ scale: 1.08 }} // slight grow on hover
+              onClick={() => setIsPreview((prev) => !prev)}
+              className={`flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
                 border transition-all duration-150 shadow-card
                 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
                 dark:focus:ring-offset-gray-900
@@ -255,45 +299,50 @@ function App() {
                     ? "bg-primary text-white border-primary"
                     : "bg-card dark:bg-gray-800 text-text-secondary dark:text-gray-300 border-border dark:border-gray-700 hover:border-primary"
                 }`}
-          >
-            {isPreview ? "✏️ Edit" : "👁 Preview"}
-          </motion.button>
-
-          {/* Download PDF button */}
-          <motion.button
-            whileTap={{ scale: 0.92 }} // slight squish on click
-            whileHover={{ scale: 1.06 }} // slight grow on hover
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
-               bg-primary hover:bg-primary-dark text-white
-               dark:bg-indigo-800 dark:hover:bg-indigo-700
-               shadow-card transition-all duration-150
-               focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-               dark:focus:ring-offset-gray-900"
-          >
-            ⬇️ Download PDF
-          </motion.button>
-          {/* Dark mode toggle button*/}
-          <motion.button
-            whileTap={{ scale: 0.92 }} // slight squish on click
-            whileHover={{ scale: 1.08 }} // slight grow on hover
-            onClick={toggleDark}
-            title="Toggle dark mode"
-            className={`relative w-16 h-8 rounded-full transition-colors duration-300
-              focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-              dark:focus:ring-offset-gray-900
-              ${isDark ? "bg-indigo-500" : "bg-gray-300"}`}
-          >
-            {/* The sliding circle with the emoji inside */}
-            <span
-              className={`absolute top-1 left-1 w-6 h-6 rounded-full
-              flex items-center justify-center text-sm
-              shadow-md transition-transform duration-300
-              ${isDark ? "translate-x-8 bg-indigo-900" : "translate-x-0 bg-white"}`}
             >
-              {isDark ? "🌙" : "☀️"}
-            </span>
-          </motion.button>
+              {isPreview ? "✏️ Edit" : "👁 Preview"}
+            </motion.button>
+
+            {/* Download PDF button */}
+            <motion.button
+              whileTap={{ scale: 0.92 }} // slight squish on click
+              whileHover={{ scale: 1.06 }} // slight grow on hover
+              onClick={handlePrint}
+              className="flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
+                bg-primary hover:bg-primary-dark text-white
+                dark:bg-indigo-800 dark:hover:bg-indigo-700
+                shadow-card transition-all duration-150
+                focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                dark:focus:ring-offset-gray-900"
+            >
+              ⬇️ Download PDF
+            </motion.button>
+          </div>
+
+          {/* Right alignment group for app/system settings */}
+          <div>
+            {/* Dark mode toggle button*/}
+            <motion.button
+              whileTap={{ scale: 0.92 }} // slight squish on click
+              whileHover={{ scale: 1.08 }} // slight grow on hover
+              onClick={toggleDark}
+              title="Toggle dark mode"
+              className={`relative w-16 h-8 rounded-full transition-colors duration-300
+                focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                dark:focus:ring-offset-gray-900
+                ${isDark ? "bg-indigo-500" : "bg-gray-300"}`}
+            >
+              {/* The sliding circle with the emoji inside */}
+              <span
+                className={`absolute top-1 left-1 w-6 h-6 rounded-full
+                  flex items-center justify-center text-sm
+                  shadow-md transition-transform duration-300
+                  ${isDark ? "translate-x-8 bg-indigo-900" : "translate-x-0 bg-white"}`}
+              >
+                {isDark ? "🌙" : "☀️"}
+              </span>
+            </motion.button>
+          </div>
         </div>
 
         {/* ── Printable resume area ── */}

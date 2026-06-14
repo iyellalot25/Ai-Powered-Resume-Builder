@@ -138,9 +138,10 @@ function EducationSection({
   onAddEdu,
   onRemoveEdu,
   isPreview,
+  template,
 }) {
   return (
-    <Section title="Education">
+    <Section title="Education" template={template}>
       {edu.map((item, eduIndex) => (
         <EduCard
           key={item.id}

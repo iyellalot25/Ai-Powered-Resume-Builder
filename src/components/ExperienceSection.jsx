@@ -368,9 +368,10 @@ function ExperienceSection({
   onAddJob,
   onRemoveJob,
   isPreview,
+  template,
 }) {
   return (
-    <Section title="Experience">
+    <Section title="Experience" template={template}>
       {jobs.map((job, jobIndex) => (
         <JobCard
           key={job.id}
