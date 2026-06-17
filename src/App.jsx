@@ -148,6 +148,14 @@ function App() {
     documentTitle: `${resume.name}_Resume`, // sets the PDF filename
   });
 
+  function handleDownload() {
+    setIsPreview(true); // activate preview mode first
+    setTimeout(() => {
+      handlePrint(); // then trigger print
+      setIsPreview(false); // restore edit mode after
+    }, 150); // small delay so React re-renders preview first
+  }
+
   //  Drag end handler ─
   // Called by dnd-kit when user drops a section in a new position
   function handleDragEnd(event) {
@@ -307,7 +315,7 @@ function App() {
             <motion.button
               whileTap={{ scale: 0.92 }} // slight squish on click
               whileHover={{ scale: 1.06 }} // slight grow on hover
-              onClick={handlePrint}
+              onClick={handleDownload}
               className="flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium
                 bg-primary hover:bg-primary-dark text-white
                 dark:bg-indigo-800 dark:hover:bg-indigo-700
