@@ -72,6 +72,7 @@ function JobCard({
   onRemoveBullet,
   onRemoveJob,
   isPreview,
+  template,
 }) {
   // AI state — local to each job card independent of other cards
   const [isLoading, setIsLoading] = useState(false);
@@ -159,7 +160,7 @@ function JobCard({
       </div>
 
       {/* Company */}
-      <p className="text-sm font-medium text-primary mb-3">
+      <p className={`text-sm font-medium mb-3 ${template.subtitle}`}>
         <InlineEdit
           value={job.company}
           onSave={(val) => onUpdateJob(jobIndex, "company", val)}
@@ -177,6 +178,7 @@ function JobCard({
               value={bullet}
               onSave={(val) => onUpdateBullet(jobIndex, bulletIndex, val)}
               isPreview={isPreview}
+              template={template}
             />
             {/* Hide remove bullet in preview */}
             {!isPreview && (
@@ -267,7 +269,7 @@ function JobCard({
 
 //  Bullet edit: textarea that auto-saves
 // Uses textarea (not input) because bullets can be long
-function BulletEdit({ value, onSave, isPreview }) {
+function BulletEdit({ value, onSave, isPreview, template }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
@@ -332,8 +334,8 @@ function BulletEdit({ value, onSave, isPreview }) {
           setIsEditing(true);
         }}
         title="Click to edit"
-        className="flex-1 text-sm text-text-secondary dark:text-gray-400
-                   cursor-pointer hover:text-primary transition-colors duration-150"
+        className={`flex-1 text-sm ${template?.bullet ?? "text-text-secondary dark:text-gray-400"}
+                 cursor-pointer hover:text-primary transition-colors duration-150`}
       >
         {value ||
           (!isPreview && (
@@ -383,6 +385,7 @@ function ExperienceSection({
           onRemoveBullet={onRemoveBullet}
           onRemoveJob={onRemoveJob}
           isPreview={isPreview}
+          template={template}
         />
       ))}
 

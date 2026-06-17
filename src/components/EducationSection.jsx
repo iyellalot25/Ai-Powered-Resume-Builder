@@ -61,7 +61,14 @@ function InlineEdit({
 }
 
 // Single education card
-function EduCard({ item, eduIndex, onUpdateEdu, onRemoveEdu, isPreview }) {
+function EduCard({
+  item,
+  eduIndex,
+  onUpdateEdu,
+  onRemoveEdu,
+  isPreview,
+  template,
+}) {
   return (
     <div
       className="border border-border dark:border-gray-700 rounded-xl p-4 mb-5 last:mb-0
@@ -107,7 +114,9 @@ function EduCard({ item, eduIndex, onUpdateEdu, onRemoveEdu, isPreview }) {
       </div>
 
       {/* Degree — primary subtitle */}
-      <p className="text-sm font-medium text-primary mb-2">
+      {/* Degree — primary subtitle */}
+      <p className={`text-sm font-medium mb-2 ${template.subtitle}`}>
+        {/* dynamically styled */}
         <InlineEdit
           value={item.degree}
           onSave={(val) => onUpdateEdu(eduIndex, "degree", val)}
@@ -150,6 +159,7 @@ function EducationSection({
           onUpdateEdu={onUpdateEdu}
           onRemoveEdu={onRemoveEdu}
           isPreview={isPreview}
+          template={template}
         />
       ))}
 

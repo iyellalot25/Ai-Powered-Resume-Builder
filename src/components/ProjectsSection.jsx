@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Section from "./Section";
-import { btn, input, tag } from "../styles/ui";
+import { btn, input } from "../styles/ui";
 import { suggestProjectBullets } from "../services/aiService";
 import useSpeechInput from "../hooks/useSpeechInput";
 import MicButton from "./MicButton";
@@ -94,7 +94,13 @@ function InlineEdit({
 }
 
 // BulletEdit (Updated to support className configuration)
-function BulletEdit({ value, onSave, className = "", isPreview = false }) {
+function BulletEdit({
+  value,
+  onSave,
+  className = "",
+  isPreview = false,
+  template,
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
@@ -158,7 +164,7 @@ function BulletEdit({ value, onSave, className = "", isPreview = false }) {
           setIsEditing(true);
         }}
         title={isPreview ? "" : "Click to edit"}
-        className={`flex-1 text-sm transition-colors duration-150 ${isPreview ? "cursor-default" : "cursor-pointer hover:text-primary"} ${className || "text-text-secondary dark:text-gray-400"}`}
+        className={`flex-1 text-sm transition-colors duration-150 ${isPreview ? "cursor-default" : "cursor-pointer hover:text-primary"} ${className || template?.bullet || "text-text-secondary dark:text-gray-400"}`}
       >
         {value ||
           (!isPreview && (
@@ -196,6 +202,7 @@ function ProjectCard({
   onAddProjectBullet,
   onRemoveProjectBullet,
   isPreview,
+  template,
 }) {
   const [techDraft, setTechDraft] = useState("");
 
@@ -304,7 +311,10 @@ function ProjectCard({
       {/* Tech tags */}
       <div className="flex flex-wrap gap-2 mb-3">
         {project.tech.map((t) => (
-          <span key={t} className={tag.tech + " flex items-center gap-1"}>
+          <span
+            key={t}
+            className={`${template.techTag} flex items-center gap-1`}
+          >
             {t}
             {/* Hide × in preview */}
             {!isPreview && (
@@ -332,6 +342,7 @@ function ProjectCard({
                   onUpdateProjectBullet(projIndex, bulletIndex, val)
                 }
                 isPreview={isPreview}
+                template={template}
               />
               {/* Hide remove bullet in preview */}
               {!isPreview && (
@@ -472,6 +483,7 @@ function ProjectsSection({
             onAddProjectBullet={onAddProjectBullet}
             onRemoveProjectBullet={onRemoveProjectBullet}
             isPreview={isPreview}
+            template={template}
           />
         ))}
       </div>
