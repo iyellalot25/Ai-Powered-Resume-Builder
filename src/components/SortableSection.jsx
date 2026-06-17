@@ -27,6 +27,7 @@ function SortableSection({ id, children, isPreview }) {
         <div
           {...attributes}
           {...listeners}
+          style={{ touchAction: "none" }}
           className="flex items-center justify-center gap-1
                      w-full py-1.5 mb-[-1.5rem]
                      cursor-grab active:cursor-grabbing
