@@ -20,6 +20,8 @@ import ProjectsSection from "./components/ProjectsSection";
 import SortableSection from "./components/SortableSection";
 import GitHubSection from "./components/GitHubSection";
 import ATSScorer from "./components/ATSScorer";
+import CoverLetterGenerator from "./components/CoverLetterGenerator";
+
 import { templates, TEMPLATE_IDS } from "./styles/templates";
 
 import { useReactToPrint } from "react-to-print";
@@ -393,6 +395,11 @@ function App() {
           {/* ATS Scorer — hidden when printing */}
           <div className="print:hidden">
             <ATSScorer resume={resume} />
+          </div>
+
+          {/* Cover Letter Generator — hidden when printing */}
+          <div className="print:hidden">
+            <CoverLetterGenerator resume={resume} />
           </div>
         </div>
       </div>
