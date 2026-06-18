@@ -111,15 +111,20 @@ const INITIAL_DATA = {
 };
 
 function App() {
+  //Boolean to check if it is a sharedLink (Check if URL has a ?resume= param)
+  const isSharedLink = new URLSearchParams(window.location.search).has(
+    "resume",
+  );
+
   const [resume, setResume] = useState(() => {
     try {
       // Check if URL has a ?resume= param
-      const params = new URLSearchParams(window.location.search);
-      const encoded = params.get("resume");
-
-      if (encoded) {
+      if (isSharedLink) {
+        const encoded = new URLSearchParams(window.location.search).get(
+          "resume",
+        );
         const decoded = decodeResume(encoded);
-        if (decoded) return decoded; // load shared resume
+        if (decoded) return decoded;
       }
 
       // Otherwise load from localStorage as normal
@@ -133,10 +138,9 @@ function App() {
   // Auto-save resume to localStorage on every change
   useEffect(() => {
     // Don't overwrite localStorage if viewing a shared resume
-    const params = new URLSearchParams(window.location.search);
-    if (params.has("resume")) return;
+    if (isSharedLink) return;
     localStorage.setItem("resumeData", JSON.stringify(resume));
-  }, [resume]);
+  }, [resume, isSharedLink]);
 
   // Dark mode state
   // Read saved preference from localStorage on first load
@@ -144,10 +148,7 @@ function App() {
     () => localStorage.getItem("theme") === "dark",
   );
 
-  const [isPreview, setIsPreview] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.has("resume"); // read-only if opened from shared link
-  });
+  const [isPreview, setIsPreview] = useState(isSharedLink);
 
   const [shareCopied, setShareCopied] = useState(false);
 
@@ -347,9 +348,9 @@ function App() {
               {/* The sliding circle with the emoji inside */}
               <span
                 className={`absolute top-1 left-1 w-6 h-6 rounded-full
-            flex items-center justify-center text-sm
-            shadow-md transition-transform duration-300
-            ${isDark ? "translate-x-6 sm:translate-x-8 bg-indigo-900" : "translate-x-0 bg-white"}`}
+                  flex items-center justify-center text-sm
+                  shadow-md transition-transform duration-300
+                  ${isDark ? "translate-x-6 sm:translate-x-8 bg-indigo-900" : "translate-x-0 bg-white"}`}
               >
                 {isDark ? "🌙" : "☀️"}
               </span>
@@ -359,42 +360,43 @@ function App() {
           {/* Row 2 on mobile: Reset + Preview + Download */}
           <div className="flex items-center gap-2">
             {/* Reset resume data button */}
-            <motion.button
-              whileTap={{ scale: 0.92 }} // slight squish on click
-              whileHover={{ scale: 1.08 }} // slight grow on hover
-              onClick={() => {
-                localStorage.removeItem("resumeData");
-                setResume(INITIAL_DATA);
-              }}
-              className="flex items-center gap-1 px-3 h-9 rounded-lg text-sm font-medium
-          bg-white dark:bg-gray-800 text-danger border border-danger
-          hover:bg-red-100 dark:hover:bg-red-950
-          shadow-card transition-all duration-150"
-            >
-              🗑 <span className="hidden sm:inline">Reset</span>
-            </motion.button>
-
+            {!isSharedLink && (
+              <motion.button
+                whileTap={{ scale: 0.92 }} // slight squish on click
+                whileHover={{ scale: 1.08 }} // slight grow on hover
+                onClick={() => {
+                  localStorage.removeItem("resumeData");
+                  setResume(INITIAL_DATA);
+                }}
+                className="flex items-center gap-1 px-3 h-9 rounded-lg text-sm font-medium
+                bg-white dark:bg-gray-800 text-danger border border-danger
+                hover:bg-red-100 dark:hover:bg-red-950
+                shadow-card transition-all duration-150"
+              >
+                🗑 <span className="hidden sm:inline">Reset</span>
+              </motion.button>
+            )}
             {/* Preview toggle button */}
             <motion.button
               whileTap={{ scale: 0.92 }} // slight squish on click
               whileHover={{ scale: 1.08 }} // slight grow on hover
+              disabled={isSharedLink}
               onClick={() => setIsPreview((prev) => !prev)}
               className={`flex items-center gap-1 px-3 h-9 rounded-lg text-sm font-medium
           border transition-all duration-150 shadow-card
           focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-          dark:focus:ring-offset-gray-900
+          dark:focus:ring-offset-gray-900 ${isSharedLink ? "opacity-60 cursor-not-allowed" : ""}
           ${
             isPreview
               ? "bg-primary text-white border-primary"
               : "bg-card dark:bg-gray-800 text-text-secondary dark:text-gray-300 border-border dark:border-gray-700 hover:border-primary"
           }`}
             >
-              {isPreview ? "✏️" : "👁"}
+              {isSharedLink ? "🔒" : isPreview ? "✏️" : "👁"}
               <span className="hidden sm:inline">
-                {isPreview ? " Edit" : " Preview"}
+                {isSharedLink ? " View Only" : isPreview ? " Edit" : " Preview"}
               </span>
             </motion.button>
-
             {/* Download PDF button */}
             <motion.button
               whileTap={{ scale: 0.92 }} // slight squish on click
@@ -409,7 +411,6 @@ function App() {
             >
               ⬇️ <span className="hidden sm:inline">Download PDF</span>
             </motion.button>
-
             {/* Share button */}
             <motion.button
               whileTap={{ scale: 0.92 }}
