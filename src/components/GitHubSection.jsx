@@ -160,7 +160,7 @@ function RepoCard({ repo }) {
       target="_blank"
       rel="noreferrer"
       className="block border border-border dark:border-gray-700 rounded-xl p-4
-                 hover:border-primary hover:shadow-card-hover
+                 hover:border-primary hover:shadow-card-hover dark:hover:border-indigo-500
                  transition-all duration-150 group"
     >
       {/* Repo name + star count */}

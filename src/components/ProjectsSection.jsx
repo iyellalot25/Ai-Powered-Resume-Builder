@@ -257,7 +257,7 @@ function ProjectCard({
   return (
     <div
       className="border border-border dark:border-gray-700 rounded-xl p-4
-                      hover:border-primary hover:shadow-card-hover transition-all duration-150"
+                      hover:border-primary hover:shadow-card-hover dark:hover:border-indigo-500  transition-all duration-150"
     >
       {/* Header: project name + link + delete */}
       <div className="flex justify-between items-start gap-2 mb-1">
@@ -494,7 +494,7 @@ function ProjectsSection({
         <button
           onClick={onAddProject}
           className="w-full mt-4 py-2 rounded-xl border-2 border-dashed border-border
-                   dark:border-gray-700 text-text-muted hover:border-primary hover:text-primary
+                   dark:border-gray-700 text-text-muted hover:border-primary dark:hover:border-indigo-500 hover:text-primary
                     text-sm font-medium transition-colors duration-150"
         >
           + Add Project

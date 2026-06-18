@@ -118,7 +118,7 @@ function JobCard({
   return (
     <div
       className="border border-border dark:border-gray-700 rounded-xl p-4 mb-5 last:mb-0
-                    hover:border-primary hover:shadow-card-hover transition-all duration-150"
+                    hover:border-primary hover:shadow-card-hover dark:hover:border-indigo-500 transition-all duration-150"
     >
       {/* Job header row */}
       <div className="flex justify-between items-start gap-4 mb-1">
@@ -395,7 +395,7 @@ function ExperienceSection({
         <button
           onClick={onAddJob}
           className="w-full mt-2 py-2 rounded-xl border-2 border-dashed border-border
-                   text-text-muted hover:border-primary hover:text-primary
+                   dark:border-gray-700 text-text-muted hover:border-primary dark:hover:border-indigo-500 hover:text-primary
                    text-sm font-medium transition-colors duration-150"
         >
           + Add Experience
