@@ -29,6 +29,23 @@ import { useReactToPrint } from "react-to-print";
 
 import { motion } from "framer-motion";
 
+import LZString from "lz-string";
+
+// Compress resume JSON → URL-safe string
+export function encodeResume(resumeData) {
+  return LZString.compressToEncodedURIComponent(JSON.stringify(resumeData));
+}
+
+// Decompress URL-safe string → resume JSON
+export function decodeResume(encoded) {
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(encoded);
+    return json ? JSON.parse(json) : null;
+  } catch {
+    return null; // corrupted URL — fail silently
+  }
+}
+
 // Initial_Data
 const INITIAL_DATA = {
   name: "John Doe",
@@ -96,15 +113,28 @@ const INITIAL_DATA = {
 function App() {
   const [resume, setResume] = useState(() => {
     try {
+      // Check if URL has a ?resume= param
+      const params = new URLSearchParams(window.location.search);
+      const encoded = params.get("resume");
+
+      if (encoded) {
+        const decoded = decodeResume(encoded);
+        if (decoded) return decoded; // load shared resume
+      }
+
+      // Otherwise load from localStorage as normal
       const saved = localStorage.getItem("resumeData");
-      return saved ? JSON.parse(saved) : INITIAL_DATA;
+      return saved ? JSON.parse(saved) : INITIAL_DATA; //safety net
     } catch {
-      return INITIAL_DATA; // safety net if JSON is corrupted
+      return INITIAL_DATA;
     }
   });
 
   // Auto-save resume to localStorage on every change
   useEffect(() => {
+    // Don't overwrite localStorage if viewing a shared resume
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("resume")) return;
     localStorage.setItem("resumeData", JSON.stringify(resume));
   }, [resume]);
 
@@ -114,7 +144,12 @@ function App() {
     () => localStorage.getItem("theme") === "dark",
   );
 
-  const [isPreview, setIsPreview] = useState(false);
+  const [isPreview, setIsPreview] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.has("resume"); // read-only if opened from shared link
+  });
+
+  const [shareCopied, setShareCopied] = useState(false);
 
   // Whenever isDark changes=> add/remove the "dark" class on <html>
   // and save the preference so it persists across page refreshes
@@ -157,6 +192,14 @@ function App() {
       handlePrint(); // then trigger print
       setIsPreview(false); // restore edit mode after
     }, 150); // small delay so React re-renders preview first
+  }
+
+  function handleShare() {
+    const encoded = encodeResume(resume);
+    const url = `${window.location.origin}${window.location.pathname}?resume=${encoded}`;
+    navigator.clipboard.writeText(url);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2500);
   }
 
   //  Drag end handler ─
@@ -358,13 +401,34 @@ function App() {
               whileHover={{ scale: 1.06 }} // slight grow on hover
               onClick={handleDownload}
               className="flex items-center gap-1 px-3 h-9 rounded-lg text-sm font-medium
-          bg-primary hover:bg-primary-dark text-white
-          dark:bg-indigo-800 dark:hover:bg-indigo-700
-          shadow-card transition-all duration-150
-          focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-          dark:focus:ring-offset-gray-900"
+                bg-primary hover:bg-primary-dark text-white
+                dark:bg-indigo-800 dark:hover:bg-indigo-700
+                shadow-card transition-all duration-150
+                focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                dark:focus:ring-offset-gray-900"
             >
               ⬇️ <span className="hidden sm:inline">Download PDF</span>
+            </motion.button>
+
+            {/* Share button */}
+            <motion.button
+              whileTap={{ scale: 0.92 }}
+              whileHover={{ scale: 1.06 }}
+              onClick={handleShare}
+              className={`flex items-center gap-1 px-3 h-9 rounded-lg text-sm font-medium
+                shadow-card transition-all duration-150
+                focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                dark:focus:ring-offset-gray-900
+    ${
+      shareCopied
+        ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-400"
+        : "bg-card dark:bg-gray-800 text-text-secondary dark:text-gray-300 border border-border dark:border-gray-700 hover:border-primary hover:text-primary"
+    }`}
+            >
+              {shareCopied ? "✅" : "🔗"}
+              <span className="hidden sm:inline">
+                {shareCopied ? " Copied!" : " Share"}
+              </span>
             </motion.button>
           </div>
         </div>
