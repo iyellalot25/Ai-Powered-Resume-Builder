@@ -471,15 +471,19 @@ function App() {
             </SortableContext>
           </DndContext>
 
-          {/* ATS Scorer — hidden when printing */}
-          <div className="print:hidden">
-            <ATSScorer resume={resume} />
-          </div>
+          {!isSharedLink && (
+            // ATS Scorer — hidden when printing
+            <div className="print:hidden">
+              <ATSScorer resume={resume} />
+            </div>
+          )}
 
-          {/* Cover Letter Generator — hidden when printing */}
-          <div className="print:hidden">
-            <CoverLetterGenerator resume={resume} />
-          </div>
+          {!isSharedLink && (
+            // Cover Letter Generator — hidden when printing
+            <div className="print:hidden">
+              <CoverLetterGenerator resume={resume} />
+            </div>
+          )}
         </div>
       </div>
     </div>
