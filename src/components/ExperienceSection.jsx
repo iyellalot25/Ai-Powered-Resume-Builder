@@ -117,7 +117,7 @@ function JobCard({
   }
   return (
     <div
-      className="border border-border rounded-xl p-4 mb-5 last:mb-0
+      className="border border-border dark:border-gray-700 rounded-xl p-4 mb-5 last:mb-0
                     hover:border-primary hover:shadow-card-hover transition-all duration-150"
     >
       {/* Job header row */}
