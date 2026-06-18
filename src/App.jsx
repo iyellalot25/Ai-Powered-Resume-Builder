@@ -32,12 +32,12 @@ import { motion } from "framer-motion";
 import LZString from "lz-string";
 
 // Compress resume JSON → URL-safe string
-export function encodeResume(resumeData) {
+function encodeResume(resumeData) {
   return LZString.compressToEncodedURIComponent(JSON.stringify(resumeData));
 }
 
 // Decompress URL-safe string → resume JSON
-export function decodeResume(encoded) {
+function decodeResume(encoded) {
   try {
     const json = LZString.decompressFromEncodedURIComponent(encoded);
     return json ? JSON.parse(json) : null;
