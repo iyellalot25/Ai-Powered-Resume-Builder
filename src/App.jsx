@@ -31,18 +31,18 @@ import { motion } from "framer-motion";
 
 import LZString from "lz-string";
 
-// Compress resume JSON → URL-safe string
+// Compress resume JSON => URL-safe string
 function encodeResume(resumeData) {
   return LZString.compressToEncodedURIComponent(JSON.stringify(resumeData));
 }
 
-// Decompress URL-safe string → resume JSON
+// Decompress URL-safe string => resume JSON
 function decodeResume(encoded) {
   try {
     const json = LZString.decompressFromEncodedURIComponent(encoded);
     return json ? JSON.parse(json) : null;
   } catch {
-    return null; // corrupted URL — fail silently
+    return null; // corrupted URL => fail silently
   }
 }
 
