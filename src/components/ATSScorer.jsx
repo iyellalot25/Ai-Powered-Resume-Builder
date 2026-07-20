@@ -1,5 +1,6 @@
 // src/components/ATSScorer.jsx
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
 import { btn, input, card } from "../styles/ui";
 import { extractATSKeywords } from "../services/aiService";
 
@@ -170,6 +171,46 @@ export default function ATSScorer({ resume }) {
     setAiUsed(false);
   }
 
+  // Tracks the animated score shown in the circle (starts at 0, counts up to real score)
+  const [displayScore, setDisplayScore] = useState(0);
+
+  // Runs whenever a new result arrives — animates count-up and fires confetti if score >= 70
+  useEffect(() => {
+    if (!result) return;
+
+    // Reset display to 0 first so animation always plays from scratch
+    setDisplayScore(0);
+
+    const duration = 1000; // total animation time in ms
+    const steps = 40; // how many increments to split the count-up into
+    const interval = duration / steps;
+    const increment = result.score / steps; // how much to add each step
+    let current = 0;
+
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= result.score) {
+        setDisplayScore(result.score); // snap to exact final value
+        clearInterval(timer);
+
+        // 🎉 Fire confetti only on strong match
+        if (result.score >= 70) {
+          confetti({
+            particleCount: 120,
+            spread: 70,
+            origin: { y: 0.6 }, // fires from roughly the middle of the screen
+            colors: ["#6366F1", "#10B981", "#F59E0B"], // primary, success, warning
+          });
+        }
+      } else {
+        setDisplayScore(Math.round(current));
+      }
+    }, interval);
+
+    // Cleanup: clear timer if component unmounts mid-animation
+    return () => clearInterval(timer);
+  }, [result]);
+
   return (
     <div className={card.section}>
       {/* Title */}
@@ -248,7 +289,7 @@ export default function ATSScorer({ resume }) {
               <span
                 className={`text-3xl font-bold ${scoreColor(result.score)}`}
               >
-                {result.score}%
+                {displayScore}%
               </span>
             </div>
             <span
