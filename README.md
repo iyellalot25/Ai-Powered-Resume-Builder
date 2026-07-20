@@ -1,8 +1,8 @@
 # 🎨 AI-Powered Interactive Resume Builder
 
-A production-ready AI-powered resume builder built with **React**, **Vite**, and **Tailwind CSS** that combines interactive resume editing, AI-assisted writing, ATS optimization, PDF export, and portfolio integration into a single modern web application.
+An AI-powered resume builder built with React, Vite, and Tailwind CSS that combines interactive resume editing, AI-assisted writing, ATS optimization, PDF export, and portfolio integration into a single modern web application.
 
-Designed to demonstrate scalable React architecture, reusable component design, external API integration, responsive UI development, and production deployment.
+The application emphasizes reusable component architecture, scalable state management, centralized styling, responsive UI design, and seamless third-party API integration.
 
 🌐 **Live Demo:** https://ai-powered-resume-builder-liard.vercel.app/
 
@@ -46,7 +46,7 @@ The application emphasizes maintainable frontend architecture, reusable UI compo
 - Print-optimized PDF export
 - Shareable read-only resume links using compressed URLs
 
-## Developer Experience
+## Advanced Features
 
 - GitHub profile and repository integration
 - Voice input using the Web Speech API
@@ -93,13 +93,13 @@ The application emphasizes maintainable frontend architecture, reusable UI compo
 
 # 🏗️ Architecture Highlights
 
-- Modular component-based React architecture
-- Centralized reusable design system built on custom Tailwind tokens
-- Reusable UI primitives for buttons, inputs, cards, and tags
-- Scalable client-side state management
-- Service layer for external API integrations
-- Responsive-first design with accessibility-conscious UI patterns
-- Theme-aware styling supporting light, dark, and print layouts
+- Modular, component-based React architecture designed for scalability and maintainability
+- Centralized design system built on custom Tailwind design tokens and reusable UI primitives
+- Scalable client-side state management with clear separation between UI, business logic, and services
+- Dedicated service layer for AI, GitHub, and browser API integrations with graceful error handling and offline fallbacks
+- Reusable hooks and shared utilities to encourage extensibility and reduce code duplication
+- Responsive, theme-aware interface supporting light, dark, mobile, and print layouts
+- Feature-oriented project structure that keeps components, hooks, services, and styling concerns organized
 
 ---
 
@@ -159,16 +159,6 @@ npm run dev
 ```bash
 npm run build
 ```
-
----
-
-# 🎯 Engineering Highlights
-
-- Built using a modular React component architecture for scalability and maintainability.
-- Implemented reusable UI primitives backed by a centralized design system to ensure consistent styling.
-- Integrated multiple external APIs while maintaining graceful error handling and offline fallbacks.
-- Optimized for responsive layouts, accessibility, and production deployment.
-- Structured the application for future extensibility through reusable hooks, services, and shared utilities.
 
 ---
 
