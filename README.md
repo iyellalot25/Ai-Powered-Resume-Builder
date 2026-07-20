@@ -130,7 +130,7 @@ ai-resume-builder/
 ## Clone the repository
 
 ```bash
-git clone https://github.com/your-username/ai-resume-builder.git
+git clone https://github.com/iyellalot25/ai-resume-builder.git
 ```
 
 ## Install dependencies
@@ -194,5 +194,3 @@ npm run build
 Aspiring Software Engineer focused on building production-ready full-stack applications with modern web technologies and AI-powered user experiences.
 
 ---
-
-## ⭐ If you found this project interesting, consider giving it a star!
