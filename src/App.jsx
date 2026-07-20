@@ -316,6 +316,22 @@ function App() {
     }
   }
 
+  // Creates a copy of any profile with "Copy of" prefix, then switches to it
+  function duplicateProfile(profileId) {
+    const source = profiles[profileId];
+    const id = `profile-${Date.now()}`;
+    const newProfile = {
+      id,
+      name: `Copy of ${source.name}`,
+      data: { ...source.data }, // shallow copy
+    };
+    const updated = { ...profiles, [id]: newProfile };
+    setProfiles(updated);
+    localStorage.setItem("resumeProfiles", JSON.stringify(updated));
+    setActiveProfileId(id);
+    setResume(newProfile.data); // switch to the duplicate immediately
+  }
+
   //  Drag end handler ─
   // Called by dnd-kit when user drops a section in a new position
   function handleDragEnd(event) {
@@ -428,6 +444,7 @@ function App() {
               onCreate={createProfile}
               onRename={renameProfile}
               onDelete={deleteProfile}
+              onDuplicate={duplicateProfile}
             />
           </div>
         )}

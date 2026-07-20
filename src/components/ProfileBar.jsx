@@ -8,6 +8,7 @@ function ProfileBar({
   onCreate,
   onRename,
   onDelete,
+  onDuplicate,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [renamingId, setRenamingId] = useState(null); // id of profile being renamed, or null
@@ -148,6 +149,20 @@ function ProfileBar({
                       >
                         ✏️
                       </button>
+
+                      {/* Duplicate — copies this profile's resume data into a new profile */}
+                      <button
+                        title="Duplicate"
+                        onClick={() => {
+                          onDuplicate(profile.id);
+                          setIsOpen(false);
+                        }}
+                        className="p-1 rounded text-text-muted hover:text-primary
+                        dark:text-gray-500 dark:hover:text-indigo-400 transition-colors"
+                      >
+                        ⧉
+                      </button>
+
                       {/* Disabled when only 1 profile exists — can't delete the last one */}
                       <button
                         title={
